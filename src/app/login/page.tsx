@@ -7,7 +7,7 @@ import { Sparkles, ShieldCheck, ArrowRight, Github, Chrome, Eye, EyeOff } from "
 import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
-  const { login, register } = useAuth();
+  const { login, register, loginWithOAuth } = useAuth();
   const searchParams = useSearchParams();
   const redirectTo = searchParams?.get("redirectTo") || "/dashboard";
 
@@ -15,6 +15,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<"Google" | "GitHub" | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   // OAuth Modal States
@@ -38,9 +39,17 @@ function LoginForm() {
     }
   };
 
-  const handleOAuthClick = (provider: "Google" | "GitHub") => {
-    setOauthProvider(provider);
-    setShowOAuthModal(true);
+  const handleDirectOAuth = async (provider: "Google" | "GitHub") => {
+    setOauthLoading(provider);
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      await loginWithOAuth(provider === "Google" ? "google" : "github", undefined, undefined, redirectTo);
+    } catch (err: any) {
+      setErrorMessage(err?.message || `Gagal login dengan ${provider}.`);
+      setIsLoading(false);
+      setOauthLoading(null);
+    }
   };
 
   const handleOAuthSubmit = async (e: React.FormEvent) => {
@@ -49,14 +58,14 @@ function LoginForm() {
     setIsLoading(true);
     setShowOAuthModal(false);
     try {
-      const nameFromEmail = oauthEmail.split("@")[0].replace(".", " ");
-      const derivedName = nameFromEmail
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-      const userFullName = oauthName.trim() || derivedName || `${oauthProvider} User`;
-      await register(userFullName, oauthEmail.trim(), "oauth-pass");
-    } catch {
+      await loginWithOAuth(
+        oauthProvider === "Google" ? "google" : "github",
+        oauthEmail.trim(),
+        oauthName.trim(),
+        redirectTo
+      );
+    } catch (err: any) {
+      setErrorMessage(err?.message || `Gagal login dengan ${oauthProvider}.`);
       setIsLoading(false);
     }
   };
@@ -82,18 +91,38 @@ function LoginForm() {
         <button
           type="button"
           disabled={isLoading}
-          onClick={() => handleOAuthClick("Google")}
+          onClick={() => handleDirectOAuth("Google")}
           className="w-full py-2.5 px-4 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          <Chrome className="w-4 h-4 text-orange-600 dark:text-orange-400" /> Continue with Google
+          {oauthLoading === "Google" ? (
+            <>
+              <Sparkles className="w-4 h-4 animate-spin text-orange-600 dark:text-orange-400" />
+              <span>Connecting to Google...</span>
+            </>
+          ) : (
+            <>
+              <Chrome className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <span>Continue with Google</span>
+            </>
+          )}
         </button>
         <button
           type="button"
           disabled={isLoading}
-          onClick={() => handleOAuthClick("GitHub")}
+          onClick={() => handleDirectOAuth("GitHub")}
           className="w-full py-2.5 px-4 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          <Github className="w-4 h-4 text-slate-800 dark:text-zinc-200" /> Continue with GitHub
+          {oauthLoading === "GitHub" ? (
+            <>
+              <Sparkles className="w-4 h-4 animate-spin text-slate-800 dark:text-zinc-200" />
+              <span>Connecting to GitHub...</span>
+            </>
+          ) : (
+            <>
+              <Github className="w-4 h-4 text-slate-800 dark:text-zinc-200" />
+              <span>Continue with GitHub</span>
+            </>
+          )}
         </button>
       </div>
 

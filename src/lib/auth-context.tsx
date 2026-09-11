@@ -19,6 +19,7 @@ interface AuthContextType {
   login: (email: string, pass: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   resetPassword: (email: string, newPass: string) => Promise<void>;
+  loginWithOAuth: (provider: "google" | "github", customEmail?: string, customName?: string, redirectTo?: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<UserSession>) => void;
 }
@@ -235,6 +236,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   };
 
+  const loginWithOAuth = async (
+    provider: "google" | "github",
+    customEmail?: string,
+    customName?: string,
+    redirectTo: string = "/dashboard"
+  ) => {
+    setIsLoading(true);
+    await new Promise((r) => setTimeout(r, 600));
+
+    const isGoogle = provider === "google";
+    const defaultEmail = isGoogle ? "muhammad.bagjasatrio28@gmail.com" : "bagjasatrio.dev@github.com";
+    const defaultName = isGoogle ? "Muhammad Bagja Satrio (Google)" : "Bagja Satrio (GitHub)";
+    const initials = isGoogle ? "MB" : "BS";
+
+    const email = (customEmail || defaultEmail).toLowerCase().trim();
+    const name = customName || defaultName;
+
+    const registeredList = getRegisteredAccounts();
+    let found = registeredList.find((u) => u.email.toLowerCase().trim() === email);
+
+    if (!found) {
+      found = {
+        id: `usr_${email.replace(/[^a-z0-9]/g, "_")}`,
+        name: name,
+        email: email,
+        pass: "oauth-pass",
+        roleTitle: "Career Profile Owner",
+        avatarInitials: initials,
+      };
+      const updatedAccounts = [...registeredList, found];
+      localStorage.setItem("cvforge_registered_accounts", JSON.stringify(updatedAccounts));
+    }
+
+    const oauthSession: UserSession = {
+      id: found.id,
+      name: found.name,
+      email: found.email,
+      roleTitle: found.roleTitle || "Career Profile Owner",
+      avatarInitials: initials,
+      isDemo: false,
+    };
+
+    setSessionCookie(true);
+    localStorage.setItem("cvforge_user", JSON.stringify(oauthSession));
+    setUser(oauthSession);
+    setIsLoading(false);
+    router.push(redirectTo);
+  };
+
   const logout = () => {
     setSessionCookie(false);
     localStorage.removeItem("cvforge_user");
@@ -267,6 +317,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         resetPassword,
+        loginWithOAuth,
         logout,
         updateUser,
       }}
