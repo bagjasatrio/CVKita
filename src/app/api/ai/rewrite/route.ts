@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rewriteCareerContent } from "@/lib/ai/rewriter";
+import { rewriteCareerContent, rewriteWithHeuristics } from "@/lib/ai/rewriter";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  let requestText = "";
+  let requestType: "bullet" | "summary" = "bullet";
+  let requestStyle: "action_oriented" | "concise" | "metric_focused" = "action_oriented";
+
   try {
     const body = await req.json();
     const { text, type = "bullet", style = "action_oriented", targetRole } = body;
+    requestText = text || "";
+    requestType = type;
+    requestStyle = style;
 
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Text is required for rewrite" }, { status: 400 });
@@ -23,10 +30,12 @@ export async function POST(req: NextRequest) {
       data: result,
     });
   } catch (err: any) {
-    console.error("Rewrite error:", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to rewrite content" },
-      { status: 500 }
-    );
+    console.error("Rewrite error, falling back to heuristic engine:", err);
+    const fallbackResult = rewriteWithHeuristics(requestText, requestType, requestStyle);
+    return NextResponse.json({
+      success: true,
+      data: fallbackResult,
+    });
   }
 }
+

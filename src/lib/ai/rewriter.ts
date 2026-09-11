@@ -35,9 +35,17 @@ export async function rewriteCareerContent(
 ): Promise<RewriteResponse> {
   const apiKey = customApiKey || (provider === "openai" ? process.env.OPENAI_API_KEY : process.env.GOOGLE_AI_API_KEY);
 
-  if (apiKey && apiKey !== "your-gemini-api-key" && apiKey !== "your-openai-api-key") {
+  const isValidKey =
+    apiKey &&
+    apiKey.trim() !== "" &&
+    apiKey !== "your-gemini-api-key" &&
+    apiKey !== "your-openai-api-key" &&
+    apiKey !== "undefined" &&
+    apiKey !== "null";
+
+  if (isValidKey) {
     try {
-      return await rewriteWithLiveLLM(text, type, style, targetRole, apiKey, provider);
+      return await rewriteWithLiveLLM(text, type, style, targetRole, apiKey.trim(), provider);
     } catch (err) {
       console.warn(`${provider} rewrite failed, using heuristic enhancer:`, err);
     }

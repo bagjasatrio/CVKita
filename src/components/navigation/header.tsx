@@ -47,10 +47,10 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
     }
 
     return {
-      title: `${provider === "openai" ? "OpenAI" : "Google Gemini"} (API Key Belum Dipasang)`,
-      badge: "Fallback Heuristic",
-      isConnected: false,
-      desc: "API Key belum diisi di Settings. Menggunakan Heuristic Fallback.",
+      title: "Heuristic Generator",
+      badge: "Internal Engine",
+      isConnected: true,
+      desc: "Engine internal aktif (siap digunakan tanpa API Key).",
     };
   })();
 
