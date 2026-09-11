@@ -99,16 +99,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const accessToken = hashParams.get("access_token");
         const jwtPayload = accessToken ? parseJwtPayload(accessToken) : null;
 
+        const pendingProvider = sessionStorage.getItem("cvforge_pending_provider");
+        sessionStorage.removeItem("cvforge_pending_provider");
+
         let realEmail = jwtPayload?.email || jwtPayload?.user_metadata?.email;
-        const provider = jwtPayload?.app_metadata?.provider || (jwtPayload?.user_metadata?.user_name ? "github" : "google");
-        
-        let realName = provider === "github"
+        const provider = (pendingProvider || jwtPayload?.app_metadata?.provider || (jwtPayload?.user_metadata?.user_name ? "github" : "google")).toLowerCase();
+
+        let rawName = provider === "github"
           ? (jwtPayload?.user_metadata?.user_name || jwtPayload?.user_metadata?.preferred_username || jwtPayload?.user_metadata?.full_name || jwtPayload?.user_metadata?.name)
           : (jwtPayload?.user_metadata?.full_name || jwtPayload?.user_metadata?.name || jwtPayload?.user_metadata?.user_name);
 
         if (realEmail) {
           realEmail = realEmail.toLowerCase().trim();
-          realName = realName || (provider === "github" ? "GitHub User" : "Google User");
+          const baseName = rawName || (provider === "github" ? "GitHub User" : "Google User");
+          const realName = provider === "github"
+            ? (baseName.includes("(GitHub)") ? baseName : `${baseName} (GitHub)`)
+            : (baseName.includes("(Google)") ? baseName : `${baseName} (Google)`);
 
           const accountId = `usr_${provider}_${realEmail.replace(/[^a-z0-9]/g, "_")}`;
           const registeredList = getRegisteredAccounts();
@@ -131,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
             localStorage.setItem("cvforge_registered_accounts", JSON.stringify([...registeredList, existingUser]));
           } else {
-            // Update name if changed
+            // Update name and initials
             existingUser.name = realName;
             existingUser.avatarInitials = initials;
             const updated = registeredList.map(u => u.id === accountId ? existingUser : u);
@@ -332,6 +338,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
 
     if (typeof window !== "undefined") {
+      sessionStorage.setItem("cvforge_pending_provider", provider);
       const origin = window.location.origin;
       const callbackUrl = `${origin}/api/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`;
       const supabaseUrl = "https://nuxzudcykhmkcddbvfjz.supabase.co";
