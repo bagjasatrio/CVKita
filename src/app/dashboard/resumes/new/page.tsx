@@ -6,7 +6,6 @@ import {
   User,
   Briefcase,
   GraduationCap,
-  Cpu,
   FileText,
   Award,
   CheckCircle2,
@@ -24,11 +23,16 @@ import {
   FolderGit2,
   ArrowLeft,
   X,
+  Trophy,
+  LayoutTemplate,
+  Home,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useUserProfile } from "@/lib/use-user-profile";
 import { MonthYearPicker } from "@/components/ui/month-year-picker";
 import { GlassConfirmModal } from "@/components/ui/glass-confirm-modal";
+import { exportResumeToDocx } from "@/lib/export-docx";
 
 const STEPS = [
   { id: 1, name: "Informasi Pribadi", icon: User },
@@ -37,8 +41,8 @@ const STEPS = [
   { id: 4, name: "Pendidikan", icon: GraduationCap },
   { id: 5, name: "Keahlian", icon: Sparkles },
   { id: 6, name: "Ringkasan Profil", icon: FileText },
-  { id: 7, name: "Data Pendukung", icon: Award },
-  { id: 8, name: "Selesai", icon: CheckCircle2 },
+  { id: 7, name: "Data Pendukung & Prestasi", icon: Award },
+  { id: 8, name: "Selesai & Ekspor", icon: CheckCircle2 },
 ];
 
 export default function NewResumePage() {
@@ -51,6 +55,7 @@ export default function NewResumePage() {
   const [isDraftRestored, setIsDraftRestored] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
+  const [aiEnhancingExpId, setAiEnhancingExpId] = useState<string | null>(null);
 
   // State for sleek GlassConfirmModal dialog
   const [confirmModalState, setConfirmModalState] = useState<{
@@ -77,7 +82,8 @@ export default function NewResumePage() {
       education: "PENDIDIKAN",
       skills: "KETERAMPILAN",
       languages: "PENGUASAAN BAHASA",
-      certifications: "SERTIFIKASI",
+      certifications: "SERTIFIKASI & LISENSI",
+      achievements: "PRESTASI & PENGHARGAAN",
     },
     en: {
       summary: "PROFILE SUMMARY",
@@ -86,7 +92,8 @@ export default function NewResumePage() {
       education: "EDUCATION",
       skills: "SKILLS",
       languages: "LANGUAGES",
-      certifications: "CERTIFICATIONS",
+      certifications: "CERTIFICATIONS & LICENSES",
+      achievements: "HONORS & ACHIEVEMENTS",
     },
   };
 
@@ -111,8 +118,9 @@ export default function NewResumePage() {
   const [useCategories, setUseCategories] = useState(true);
   const [summary, setSummary] = useState("");
   const [certifications, setCertifications] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
-  const [languages, setLanguages] = useState<{ id: string; name: string; level: string }[]>([]);
+  const [languages, setLanguages] = useState<{ id: string; name: string; level: string; included?: boolean }[]>([]);
 
   const searchParams = useSearchParams();
   const isFresh = searchParams?.get("fresh") === "true" || searchParams?.get("reset") === "true";
@@ -133,8 +141,10 @@ export default function NewResumePage() {
         if (typeof draft.useCategories === "boolean") setUseCategories(draft.useCategories);
         if (draft.summary) setSummary(draft.summary);
         if (draft.certifications) setCertifications(draft.certifications);
+        if (draft.achievements) setAchievements(draft.achievements);
         if (draft.projects) setProjects(draft.projects);
         if (draft.languages) setLanguages(draft.languages);
+        if (draft.template) setTemplate(draft.template);
         if (draft.cvLanguage) setCvLanguage(draft.cvLanguage);
         if (draft.currentStep) setCurrentStep(draft.currentStep);
         setIsDraftRestored(true);
@@ -143,7 +153,6 @@ export default function NewResumePage() {
       console.error("Failed to load CV draft", e);
     }
 
-    // Delay enabling autosave until state restoration has flushed
     const timer = setTimeout(() => {
       setIsHydrated(true);
     }, 150);
@@ -162,8 +171,10 @@ export default function NewResumePage() {
       useCategories,
       summary,
       certifications,
+      achievements,
       projects,
       languages,
+      template,
       cvLanguage,
       currentStep,
       updatedAt: new Date().toISOString(),
@@ -173,16 +184,78 @@ export default function NewResumePage() {
     } catch (e) {
       console.error("Failed to autosave CV draft", e);
     }
-  }, [isHydrated, personalInfo, experiences, education, skills, summary, certifications, projects, languages, cvLanguage, currentStep]);
+  }, [isHydrated, personalInfo, experiences, education, skills, summary, certifications, achievements, projects, languages, template, cvLanguage, currentStep]);
 
   // Derived full name & data check
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || "";
-  const hasAnyData = fullName || personalInfo.targetRole || personalInfo.email || summary || experiences.length > 0 || projects.length > 0 || education.length > 0 || skills.length > 0 || languages.length > 0;
+  const hasAnyData = Boolean(
+    fullName ||
+    personalInfo.targetRole ||
+    personalInfo.email ||
+    summary ||
+    experiences.length > 0 ||
+    projects.length > 0 ||
+    education.length > 0 ||
+    skills.length > 0 ||
+    languages.length > 0 ||
+    certifications.length > 0 ||
+    achievements.length > 0
+  );
 
+  // Dynamic Template Styles
+  const getTemplateStyles = () => {
+    switch (template) {
+      case "modern":
+        return {
+          container: "font-sans text-[#191c1c]",
+          headerAlign: "text-left border-l-4 border-orange-500 pl-3 py-1 bg-orange-50/80 rounded-r-lg",
+          nameText: "text-base font-extrabold tracking-tight uppercase text-orange-950",
+          roleText: "text-[11px] font-bold tracking-wider uppercase text-orange-600",
+          contactText: "text-[9.5px] text-[#4c6079] flex flex-wrap gap-x-2 gap-y-0.5 mt-1 font-sans",
+          sectionHeader: "border-b-2 border-orange-500 pb-0.5 mb-1",
+          sectionTitle: "text-[11px] font-bold uppercase tracking-wider text-orange-900 flex items-center gap-1.5",
+        };
+      case "executive":
+        return {
+          container: "font-serif text-[#1e293b]",
+          headerAlign: "text-center pb-1.5 border-b-2 border-double border-slate-900",
+          nameText: "text-lg font-bold tracking-widest uppercase text-slate-900",
+          roleText: "text-[10px] font-semibold tracking-widest uppercase text-[#475569] mt-0.5",
+          contactText: "text-[9.5px] text-[#475569] flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 mt-1 font-sans",
+          sectionHeader: "border-b-2 border-slate-900 pb-0.5 mb-1 text-center",
+          sectionTitle: "text-[11px] font-bold uppercase tracking-widest text-slate-900",
+        };
+      case "tech":
+        return {
+          container: "font-mono text-[#0f172a]",
+          headerAlign: "text-left border-b-2 border-indigo-600 pb-1.5",
+          nameText: "text-base font-black tracking-tight text-indigo-950",
+          roleText: "text-[10.5px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded inline-block mt-0.5 border border-indigo-200",
+          contactText: "text-[9px] text-[#64748b] flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 font-mono",
+          sectionHeader: "border-b-2 border-indigo-600 pb-0.5 mb-1",
+          sectionTitle: "text-[10.5px] font-mono font-bold uppercase tracking-wider text-indigo-900",
+        };
+      case "ats":
+      default:
+        return {
+          container: "font-sans text-[#191c1c]",
+          headerAlign: "text-center pb-1",
+          nameText: "text-sm font-bold tracking-tight uppercase text-black",
+          roleText: "text-[10px] font-medium tracking-wider uppercase text-[#4c6079]",
+          contactText: "flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[9.5px] text-[#4c6079] leading-tight font-sans",
+          sectionHeader: "border-b-2 border-black pb-0.5 mb-1",
+          sectionTitle: "text-[10.5px] font-bold uppercase tracking-wider text-black",
+        };
+    }
+  };
+
+  const tStyle = getTemplateStyles();
+
+  // Handlers for Projects
   const addProject = () => {
     setProjects((prev) => [
       ...prev,
-      { id: `proj_${Date.now()}`, name: "", role: "", link: "", startDate: "", endDate: "", bullets: "" },
+      { id: `proj_${Date.now()}`, name: "", role: "", link: "", startDate: "", endDate: "", bullets: "", included: true },
     ]);
   };
   const updateProject = (id: string, field: string, val: any) => {
@@ -192,7 +265,53 @@ export default function NewResumePage() {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
+  // Handlers for Certifications
+  const addCert = () => {
+    setCertifications((prev) => [
+      ...prev,
+      { id: `cert_${Date.now()}`, name: "", issuer: "", issueDate: "", included: true },
+    ]);
+  };
+  const updateCert = (id: string, field: string, val: any) => {
+    setCertifications((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: val } : c)));
+  };
+  const removeCert = (id: string) => {
+    setCertifications((prev) => prev.filter((c) => c.id !== id));
+  };
 
+  // Handlers for Achievements
+  const addAchievement = () => {
+    setAchievements((prev) => [
+      ...prev,
+      { id: `ach_${Date.now()}`, title: "", issuer: "", date: "", impact: "", description: "", included: true },
+    ]);
+  };
+  const updateAchievement = (id: string, field: string, val: any) => {
+    setAchievements((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: val } : a)));
+  };
+  const removeAchievement = (id: string) => {
+    setAchievements((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  // AI Enhancement Handler for Experience Bullets
+  const handleEnhanceExpBullets = async (expId: string, bulletsText: string, roleTitle: string) => {
+    setAiEnhancingExpId(expId);
+    try {
+      const res = await fetch("/api/ai/rewrite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: bulletsText || roleTitle || "Software Engineer", type: "bullet", style: "action_oriented" }),
+      });
+      const data = await res.json();
+      if (data.success && data.data?.enhancedText) {
+        updateExp(expId, "bullets", data.data.enhancedText);
+      }
+    } catch (e) {
+      console.error("AI enhancement failed", e);
+    } finally {
+      setAiEnhancingExpId(null);
+    }
+  };
 
   // Reset / Clear Draft
   const clearDraft = () => {
@@ -224,6 +343,7 @@ export default function NewResumePage() {
         setSkills([]);
         setSummary("");
         setCertifications([]);
+        setAchievements([]);
         setProjects([]);
         setLanguages([]);
         setCurrentStep(1);
@@ -280,6 +400,7 @@ export default function NewResumePage() {
           isCurrent: e.isCurrent,
           location: e.location,
           bullets: Array.isArray(e.bullets) ? e.bullets.join("\n") : e.bullets || "",
+          included: true,
         }))
       );
     }
@@ -294,27 +415,29 @@ export default function NewResumePage() {
           startDate: edu.startDate,
           endDate: edu.endDate,
           gpa: edu.gpa || "",
+          included: true,
         }))
       );
     }
 
     if (profile.skills?.length) {
       setSkills(
-        profile.skills.map((s) => ({ id: s.id, name: s.name, level: s.proficiency > 2 ? "Advanced" : "Intermediate" }))
+        profile.skills.map((s) => ({ id: s.id, name: s.name, level: s.proficiency > 2 ? "Advanced" : "Intermediate", category: s.category || "Core Development" }))
       );
     }
 
     if (profile.personalInfo.summary) setSummary(profile.personalInfo.summary);
-    if (profile.certifications?.length) setCertifications(profile.certifications);
-    if (profile.projects?.length) setProjects(profile.projects);
-    if (profile.languages?.length) setLanguages(profile.languages);
+    if (profile.certifications?.length) setCertifications(profile.certifications.map((c: any) => ({ ...c, included: true })));
+    if (profile.achievements?.length) setAchievements(profile.achievements.map((a: any) => ({ ...a, included: true })));
+    if (profile.projects?.length) setProjects(profile.projects.map((p: any) => ({ ...p, included: true })));
+    if (profile.languages?.length) setLanguages(profile.languages.map((l: any) => ({ ...l, included: true })));
   };
 
   // Handlers for dynamic lists
   const addExperience = () => {
     setExperiences((prev) => [
       ...prev,
-      { id: `exp_${Date.now()}`, company: "", role: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: "" },
+      { id: `exp_${Date.now()}`, company: "", role: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: "", included: true },
     ]);
   };
   const updateExp = (id: string, field: string, val: any) => {
@@ -327,7 +450,7 @@ export default function NewResumePage() {
   const addEdu = () => {
     setEducation((prev) => [
       ...prev,
-      { id: `edu_${Date.now()}`, institution: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", gpa: "" },
+      { id: `edu_${Date.now()}`, institution: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", gpa: "", included: true },
     ]);
   };
   const updateEdu = (id: string, field: string, val: any) => {
@@ -345,7 +468,6 @@ export default function NewResumePage() {
   ]);
   const [newCategoryInput, setNewCategoryInput] = useState("");
 
-  // Group skills by category for canvas rendering & editor display
   const groupSkillsByCategory = (skillsList: any[]) => {
     const groups: { [key: string]: string[] } = {};
     skillsList.forEach((s) => {
@@ -422,7 +544,7 @@ export default function NewResumePage() {
 
   const addLanguage = () => {
     if (!newLangInput.trim()) return;
-    setLanguages((prev) => [...prev, { id: `lang_${Date.now()}`, name: newLangInput.trim(), level: newLangLevel }]);
+    setLanguages((prev) => [...prev, { id: `lang_${Date.now()}`, name: newLangInput.trim(), level: newLangLevel, included: true }]);
     setNewLangInput("");
   };
   const updateLanguageLevel = (id: string, level: string) => {
@@ -432,6 +554,20 @@ export default function NewResumePage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportDocx = () => {
+    exportResumeToDocx({
+      fullName,
+      personalInfo,
+      summary,
+      validExperiences: experiences.filter((e) => e.included !== false),
+      validProjects: projects.filter((p) => p.included !== false),
+      validEducation: education.filter((e) => e.included !== false),
+      validSkills: skills.filter((s) => s.included !== false),
+      validCertifications: certifications.filter((c) => c.included !== false),
+      validLanguages: languages.filter((l) => l.included !== false),
+    });
   };
 
   const handleSaveCV = () => {
@@ -445,6 +581,7 @@ export default function NewResumePage() {
       atsScore: 90,
       updated: "Just now",
       contentSnapshot: {
+        template,
         fullName,
         personalInfo,
         summary,
@@ -453,6 +590,7 @@ export default function NewResumePage() {
         skills,
         useCategories,
         certifications,
+        achievements,
         projects,
         languages,
       },
@@ -465,6 +603,8 @@ export default function NewResumePage() {
     saveProfile({
       ...profile,
       resumes: [newResume, ...(profile.resumes || [])],
+      certifications: certifications.length > 0 ? certifications : profile.certifications,
+      achievements: achievements.length > 0 ? achievements : profile.achievements,
       languages: languages.length > 0 ? languages : profile.languages,
     });
 
@@ -473,7 +613,7 @@ export default function NewResumePage() {
 
   return (
     <div className="min-h-screen bg-[#f8faf9] flex flex-col font-sans">
-      {/* Sticky Top Header Bar with Back & Cancel Controls (Mobile & Desktop) */}
+      {/* Sticky Top Header Bar with Back & Controls */}
       <div className="bg-white dark:bg-[#1b2220] border-b border-[#e1e3e2] dark:border-[#242c2a] px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 print:hidden transition-colors">
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
@@ -491,6 +631,32 @@ export default function NewResumePage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Template Switcher Dropdown */}
+          <div className="hidden sm:flex items-center gap-1.5 border border-[#e1e3e2] dark:border-[#242c2a] rounded-xl px-2.5 py-1 bg-[#f8faf9] dark:bg-[#121816]">
+            <LayoutTemplate className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+            <select
+              value={template}
+              onChange={(e) => setTemplate(e.target.value)}
+              className="bg-transparent dark:bg-[#121816] text-xs font-bold text-slate-900 dark:text-zinc-100 focus:outline-none cursor-pointer pr-1"
+              title="Pilih Layout Template CV"
+            >
+              <option value="ats" className="dark:bg-[#1b2220] dark:text-zinc-100">ATS Classic (Mono)</option>
+              <option value="modern" className="dark:bg-[#1b2220] dark:text-zinc-100">Modern Clean (Sunset Orange)</option>
+              <option value="executive" className="dark:bg-[#1b2220] dark:text-zinc-100">Executive Minimalist (Navy)</option>
+              <option value="tech" className="dark:bg-[#1b2220] dark:text-zinc-100">Tech Developer (Indigo)</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleExportDocx}
+            className="hidden md:inline-flex items-center gap-1.5 bg-white dark:bg-[#121816] border border-[#c1c8c5] dark:border-[#242c2a] text-slate-900 dark:text-zinc-200 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-[#f8faf9] dark:hover:bg-[#1b2220] transition-colors"
+            title="Download Word Document"
+          >
+            <FileText className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+            <span>DOCX</span>
+          </button>
+
           <button
             type="button"
             onClick={handlePromptCancelCreation}
@@ -506,11 +672,10 @@ export default function NewResumePage() {
       {/* Top Stepper Ribbon & Language Toggle */}
       <div className="bg-white dark:bg-[#1b2220] border-b border-[#e1e3e2] dark:border-[#242c2a] px-4 sm:px-6 py-2.5 shadow-xs print:hidden transition-colors">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center overflow-x-auto gap-2 py-1">
+          <div className="flex items-center overflow-x-auto gap-2 py-1 scrollbar-none">
             {STEPS.map((s, idx) => {
               const isActive = currentStep === s.id;
               const isCompleted = currentStep > s.id;
-              const Icon = s.icon;
               return (
                 <button
                   key={s.id}
@@ -560,7 +725,7 @@ export default function NewResumePage() {
               </div>
             )}
 
-            <div className="flex items-center gap-1.5 border border-[#e1e3e2] rounded-xl p-1 bg-[#f8faf9]">
+            <div className="flex items-center gap-1 border border-[#e1e3e2] rounded-xl p-1 bg-[#f8faf9]">
               <button
                 type="button"
                 onClick={() => setCvLanguage("id")}
@@ -588,7 +753,7 @@ export default function NewResumePage() {
         </div>
       </div>
 
-      {/* Mobile View Switcher (Form vs Live Preview - Visible only on < lg screens) */}
+      {/* Mobile View Switcher */}
       <div className="lg:hidden px-4 pt-3 flex items-center justify-center print:hidden">
         <div className="flex items-center gap-1 bg-[#edeeee] p-1 rounded-xl w-full max-w-sm">
           <button
@@ -616,9 +781,9 @@ export default function NewResumePage() {
         </div>
       </div>
 
-      {/* Main Workspace (Split Screen: Form Left 50% vs Live CV Canvas Right 50%) */}
+      {/* Main Workspace (Split Screen: Form Left vs Canvas Right) */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: Interactive Form (6 Cols) */}
+        {/* LEFT COLUMN: Interactive Form Controls (6 Cols) */}
         <div className={`lg:col-span-6 bg-white border border-[#e1e3e2] rounded-2xl p-4 sm:p-6 shadow-xs space-y-6 print:hidden ${
           mobileTab === "preview" ? "hidden lg:block" : "block"
         }`}>
@@ -806,11 +971,22 @@ export default function NewResumePage() {
                 <div className="space-y-4">
                   {experiences.map((exp, idx) => (
                     <div key={exp.id} className="p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9] space-y-3 text-xs relative">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between border-b border-[#e1e3e2] pb-2">
                         <span className="font-bold text-slate-900">Pengalaman #{idx + 1}</span>
-                        <button onClick={() => removeExp(exp.id)} className="text-red-500 hover:text-red-700">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <label className="flex items-center gap-1.5 text-xs text-zinc-900 cursor-pointer font-medium select-none">
+                            <input
+                              type="checkbox"
+                              checked={exp.included !== false}
+                              onChange={(e) => updateExp(exp.id, "included", e.target.checked)}
+                              className="rounded text-orange-600 focus:ring-orange-500"
+                            />
+                            Tampilkan di CV
+                          </label>
+                          <button onClick={() => removeExp(exp.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -851,10 +1027,27 @@ export default function NewResumePage() {
                       </div>
 
                       <div>
-                        <label className="block font-medium mb-1">Deskripsi / Bullet Points (1 baris per poin)</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block font-medium">Poin Tanggung Jawab (1 baris per poin)</label>
+                          <button
+                            type="button"
+                            disabled={aiEnhancingExpId === exp.id}
+                            onClick={() =>
+                              handleEnhanceExpBullets(
+                                exp.id,
+                                Array.isArray(exp.bullets) ? exp.bullets.join("\n") : exp.bullets || "",
+                                exp.role
+                              )
+                            }
+                            className="inline-flex items-center gap-1 text-[11px] text-orange-950 bg-orange-100 hover:bg-orange-200 border border-transparent px-2 py-0.5 rounded font-semibold transition-colors disabled:opacity-50"
+                          >
+                            <Sparkles className="w-3 h-3 text-orange-600" />
+                            {aiEnhancingExpId === exp.id ? "Peningkat AI..." : "✨ Polish with AI"}
+                          </button>
+                        </div>
                         <textarea
                           rows={3}
-                          value={exp.bullets}
+                          value={Array.isArray(exp.bullets) ? exp.bullets.join("\n") : exp.bullets || ""}
                           onChange={(e) => updateExp(exp.id, "bullets", e.target.value)}
                           placeholder="Tuliskan pencapaian dan tanggung jawab utama..."
                           className="w-full p-2.5 rounded-lg border border-[#e1e3e2] bg-white text-xs resize-none"
@@ -902,11 +1095,22 @@ export default function NewResumePage() {
                 <div className="space-y-4">
                   {projects.map((proj, idx) => (
                     <div key={proj.id} className="p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9] space-y-3 text-xs">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between border-b border-[#e1e3e2] pb-2">
                         <span className="font-bold text-slate-900">Proyek #{idx + 1}</span>
-                        <button onClick={() => removeProject(proj.id)} className="text-red-500 hover:text-red-700">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <label className="flex items-center gap-1.5 text-xs text-zinc-900 cursor-pointer font-medium select-none">
+                            <input
+                              type="checkbox"
+                              checked={proj.included !== false}
+                              onChange={(e) => updateProject(proj.id, "included", e.target.checked)}
+                              className="rounded text-orange-600 focus:ring-orange-500"
+                            />
+                            Tampilkan di CV
+                          </label>
+                          <button onClick={() => removeProject(proj.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -1011,11 +1215,22 @@ export default function NewResumePage() {
                 <div className="space-y-4">
                   {education.map((edu, idx) => (
                     <div key={edu.id} className="p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9] space-y-3 text-xs">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between border-b border-[#e1e3e2] pb-2">
                         <span className="font-bold text-slate-900">Pendidikan #{idx + 1}</span>
-                        <button onClick={() => removeEdu(edu.id)} className="text-red-500 hover:text-red-700">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <label className="flex items-center gap-1.5 text-xs text-zinc-900 cursor-pointer font-medium select-none">
+                            <input
+                              type="checkbox"
+                              checked={edu.included !== false}
+                              onChange={(e) => updateEdu(edu.id, "included", e.target.checked)}
+                              className="rounded text-orange-600 focus:ring-orange-500"
+                            />
+                            Tampilkan di CV
+                          </label>
+                          <button onClick={() => removeEdu(edu.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -1098,7 +1313,7 @@ export default function NewResumePage() {
                 </button>
               </div>
 
-              {/* Mode Switcher: Dengan Kategori vs Tanpa Kategori */}
+              {/* Mode Switcher */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#f2f4f3] p-2 rounded-xl border border-[#e1e3e2] gap-2">
                 <span className="font-semibold text-[#191c1c] text-xs">Sistem Pengelompokan:</span>
                 <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#e1e3e2] w-full sm:w-auto">
@@ -1127,7 +1342,7 @@ export default function NewResumePage() {
                 </div>
               </div>
 
-              {/* Seksi Kelola Kategori (Hanya tampil jika useCategories === true) */}
+              {/* Seksi Kelola Kategori */}
               {useCategories && (
                 <div className="p-3 bg-[#f2f4f3] rounded-xl border border-[#e1e3e2] space-y-2.5">
                   <div className="flex items-center justify-between">
@@ -1189,7 +1404,6 @@ export default function NewResumePage() {
                 <div className="space-y-2">
                   {skills.map((s) => (
                     <div key={s.id} className="grid grid-cols-12 gap-2 items-center bg-[#f8faf9] border border-[#e1e3e2] p-2 rounded-lg">
-                      {/* Selection Dropdown for Categories */}
                       {useCategories && (
                         <div className="col-span-5 sm:col-span-5">
                           <select
@@ -1207,7 +1421,6 @@ export default function NewResumePage() {
                         </div>
                       )}
 
-                      {/* Skill Name Input */}
                       <div className={useCategories ? "col-span-6 sm:col-span-6" : "col-span-11"}>
                         <input
                           type="text"
@@ -1218,7 +1431,6 @@ export default function NewResumePage() {
                         />
                       </div>
 
-                      {/* Delete Skill Button */}
                       <div className="col-span-1 text-center">
                         <button
                           type="button"
@@ -1270,20 +1482,132 @@ export default function NewResumePage() {
             </div>
           )}
 
-          {/* STEP 7: Data Pendukung */}
+          {/* STEP 7: Data Pendukung & Prestasi (Certifications, Achievements, Languages) */}
           {currentStep === 7 && (
             <div className="space-y-6 animate-in fade-in">
               <div>
-                <h2 className="text-xl font-bold text-[#191c1c]">Data Pendukung</h2>
+                <h2 className="text-xl font-bold text-[#191c1c]">Data Pendukung & Prestasi</h2>
                 <p className="text-xs text-[#727976] mt-0.5">
-                  Sertifikasi, Penguasaan Bahasa, atau Informasi Tambahan.
+                  Kelola Sertifikasi, Prestasi & Penghargaan, serta Penguasaan Bahasa.
                 </p>
               </div>
 
-              {/* Languages */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#191c1c]">
-                  Bahasa yang Dikuasai & Tingkatan
+              {/* 1. Sertifikasi & Lisensi */}
+              <div className="space-y-3 p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9]">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#191c1c] flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-orange-600" /> Sertifikasi & Lisensi
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addCert}
+                    className="inline-flex items-center gap-1 text-xs text-orange-950 bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-lg font-semibold"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Tambah Sertifikat
+                  </button>
+                </div>
+
+                {certifications.length === 0 ? (
+                  <p className="text-xs text-[#727976] italic">Belum ada sertifikasi ditambahkan.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {certifications.map((c, idx) => (
+                      <div key={c.id} className="p-3 rounded-lg bg-white border border-[#e1e3e2] space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900">Sertifikat #{idx + 1}</span>
+                          <button onClick={() => removeCert(c.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={c.name || ""}
+                          onChange={(e) => updateCert(c.id, "name", e.target.value)}
+                          placeholder="Nama Sertifikasi (Misal: AWS Solution Architect)"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={c.issuer || ""}
+                            onChange={(e) => updateCert(c.id, "issuer", e.target.value)}
+                            placeholder="Penerbit (Amazon Web Services)"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                          />
+                          <input
+                            type="text"
+                            value={c.issueDate || ""}
+                            onChange={(e) => updateCert(c.id, "issueDate", e.target.value)}
+                            placeholder="Periode (Mei 2025)"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Prestasi & Penghargaan */}
+              <div className="space-y-3 p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9]">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#191c1c] flex items-center gap-1.5">
+                    <Trophy className="w-4 h-4 text-orange-600" /> Prestasi & Penghargaan
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addAchievement}
+                    className="inline-flex items-center gap-1 text-xs text-orange-950 bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-lg font-semibold"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Tambah Prestasi
+                  </button>
+                </div>
+
+                {achievements.length === 0 ? (
+                  <p className="text-xs text-[#727976] italic">Belum ada data prestasi ditambahkan.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {achievements.map((ach, idx) => (
+                      <div key={ach.id} className="p-3 rounded-lg bg-white border border-[#e1e3e2] space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900">Prestasi #{idx + 1}</span>
+                          <button onClick={() => removeAchievement(ach.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={ach.title || ""}
+                          onChange={(e) => updateAchievement(ach.id, "title", e.target.value)}
+                          placeholder="Judul Prestasi (Misal: Juara 1 UI/UX National Competition)"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={ach.issuer || ""}
+                            onChange={(e) => updateAchievement(ach.id, "issuer", e.target.value)}
+                            placeholder="Penyelenggara (Kemendikbudristek)"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                          />
+                          <input
+                            type="text"
+                            value={ach.date || ""}
+                            onChange={(e) => updateAchievement(ach.id, "date", e.target.value)}
+                            placeholder="Tahun (2024)"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Penguasaan Bahasa */}
+              <div className="space-y-3 p-4 rounded-xl border border-[#e1e3e2] bg-[#f8faf9]">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#191c1c] flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-orange-600" /> Bahasa yang Dikuasai & Tingkatan
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                   <input
@@ -1292,12 +1616,12 @@ export default function NewResumePage() {
                     onChange={(e) => setNewLangInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") addLanguage(); }}
                     placeholder="Nama Bahasa (Misal: Bahasa Indonesia, English)..."
-                    className="sm:col-span-6 px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                    className="sm:col-span-6 px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-white"
                   />
                   <select
                     value={newLangLevel}
                     onChange={(e) => setNewLangLevel(e.target.value)}
-                    className="sm:col-span-4 px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9]"
+                    className="sm:col-span-4 px-3 py-1.5 rounded-lg border border-[#e1e3e2] text-xs bg-white"
                   >
                     {LANGUAGE_LEVEL_OPTIONS[cvLanguage].map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -1315,7 +1639,7 @@ export default function NewResumePage() {
                 ) : (
                   <div className="space-y-2 pt-1">
                     {languages.map((l) => (
-                      <div key={l.id} className="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf9] border border-[#e1e3e2] text-xs">
+                      <div key={l.id} className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#e1e3e2] text-xs">
                         <div className="flex items-center gap-2">
                           <Globe className="w-3.5 h-3.5 text-orange-600" />
                           <span className="font-semibold text-[#191c1c]">{l.name}</span>
@@ -1324,7 +1648,7 @@ export default function NewResumePage() {
                           <select
                             value={formatLanguageLevel(l.level, cvLanguage)}
                             onChange={(e) => updateLanguageLevel(l.id, e.target.value)}
-                            className="px-2 py-1 rounded-lg border border-[#e1e3e2] text-xs bg-white text-[#191c1c]"
+                            className="px-2 py-1 rounded-lg border border-[#e1e3e2] text-xs bg-[#f8faf9] text-[#191c1c]"
                           >
                             {LANGUAGE_LEVEL_OPTIONS[cvLanguage].map((opt) => (
                               <option key={opt.value} value={opt.value}>
@@ -1344,22 +1668,23 @@ export default function NewResumePage() {
             </div>
           )}
 
-          {/* STEP 8: Selesai */}
+          {/* STEP 8: Selesai & Ekspor */}
           {currentStep === 8 && (
             <div className="space-y-6 animate-in fade-in">
               <div>
                 <h2 className="text-xl font-bold text-[#191c1c]">CV Siap & Di-Tailor!</h2>
                 <p className="text-xs text-[#727976] mt-0.5">
-                  Pilih template tata letak dan ekspor CV Anda ke format PDF.
+                  Pilih template tata letak dan ekspor CV Anda ke format PDF atau DOCX.
                 </p>
               </div>
 
-              {/* Template Selectors */}
+              {/* Template Selectors Grid */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { id: "ats", name: "ATS Classic", desc: "Single column paling kompatibel dengan mesin filter rekruter." },
-                  { id: "modern", name: "Modern Clean", desc: "Tampilan bersih dengan pembatas seksi elegan." },
+                  { id: "ats", name: "ATS Classic", desc: "Single column paling kompatibel dengan filter rekruter." },
+                  { id: "modern", name: "Modern Clean", desc: "Tampilan bersih dengan pembatas seksi Sunset Orange." },
                   { id: "executive", name: "Executive Minimal", desc: "Tata letak rapat khusus untuk profesional senior." },
+                  { id: "tech", name: "Tech Developer", desc: "Tata letak modern khusus teknis & pengembang software." },
                 ].map((t) => (
                   <button
                     key={t.id}
@@ -1387,14 +1712,24 @@ export default function NewResumePage() {
                   <span>Simpan ke Dashboard My Resumes</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handlePrint}
-                  className="w-full py-2.5 border border-[#e1e3e2] bg-white hover:bg-[#f2f4f3] text-[#191c1c] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Printer className="w-4 h-4 text-orange-600" />
-                  <span>Cetak / Download PDF Langsung</span>
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportDocx}
+                    className="py-2.5 border border-[#e1e3e2] bg-white hover:bg-[#f2f4f3] text-[#191c1c] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <FileText className="w-4 h-4 text-orange-600" />
+                    <span>Export Word (DOCX)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="py-2.5 border border-[#e1e3e2] bg-white hover:bg-[#f2f4f3] text-[#191c1c] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Printer className="w-4 h-4 text-orange-600" />
+                    <span>Cetak / PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1405,7 +1740,7 @@ export default function NewResumePage() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(currentStep - 1)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#e1e3e2] dark:border-[#242c2a] text-xs font-semibold text-[#727976] dark:text-[#8c9390] hover:bg-[#f8faf9] dark:hover:bg-[#1b2220]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#e1e3e2] text-xs font-semibold text-[#727976] hover:bg-[#f8faf9]"
               >
                 <ChevronLeft className="w-4 h-4" /> Kembali
               </button>
@@ -1413,7 +1748,7 @@ export default function NewResumePage() {
               <button
                 type="button"
                 onClick={handlePromptCancelCreation}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/60 text-xs font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold transition-colors"
               >
                 <X className="w-3.5 h-3.5" /> Batalkan Buat CV
               </button>
@@ -1436,7 +1771,7 @@ export default function NewResumePage() {
         <div className={`lg:col-span-6 sticky top-24 print:col-span-12 print:static print:w-full print:m-0 print:p-0 cv-print-container ${
           mobileTab === "form" ? "hidden lg:block" : "block"
         }`}>
-          <div className="cv-print-canvas bg-white rounded-2xl border border-[#e1e3e2] shadow-md mx-auto font-sans text-[#191c1c] print:p-0 print:m-0 print:max-w-none print:shadow-none print:border-none print:rounded-none">
+          <div className={`cv-print-canvas bg-white rounded-2xl border border-[#e1e3e2] shadow-md p-6 mx-auto ${tStyle.container} print:p-0 print:m-0 print:max-w-none print:shadow-none print:border-none print:rounded-none`}>
             {!hasAnyData ? (
               <div className="flex flex-col items-center justify-center min-h-[500px] text-center space-y-3 text-[#727976]">
                 <FileSearch className="w-12 h-12 text-orange-300" />
@@ -1447,17 +1782,17 @@ export default function NewResumePage() {
               </div>
             ) : (
               <div className="space-y-2 text-[#191c1c]">
-                {/* Header Canvas (SIAPKERJA ATS Compact Style) */}
-                <div className="pb-1 text-center space-y-0.5">
-                  <h1 className="text-sm font-bold tracking-tight uppercase text-[#191c1c]">
+                {/* Dynamic Header Canvas */}
+                <div className={`pb-1 space-y-0.5 ${tStyle.headerAlign}`}>
+                  <h1 className={tStyle.nameText}>
                     {fullName || "NAMA ANDA"}
                   </h1>
                   {personalInfo.targetRole && (
-                    <p className="text-[10px] font-medium tracking-wider uppercase text-[#4c6079]">
+                    <p className={tStyle.roleText}>
                       {personalInfo.targetRole}
                     </p>
                   )}
-                  <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[9.5px] text-[#4c6079] leading-tight font-sans">
+                  <div className={tStyle.contactText}>
                     {[personalInfo.fullAddress, personalInfo.cityState, personalInfo.postalCode, personalInfo.country].filter(Boolean).length > 0 && (
                       <span>
                         {[personalInfo.fullAddress, personalInfo.cityState, personalInfo.postalCode, personalInfo.country].filter(Boolean).join(", ")}
@@ -1497,8 +1832,8 @@ export default function NewResumePage() {
                 {/* Profile Summary */}
                 {summary && (
                   <div className="py-0.5 space-y-0.5">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].summary}
                       </h2>
                     </div>
@@ -1507,15 +1842,15 @@ export default function NewResumePage() {
                 )}
 
                 {/* Work Experience */}
-                {experiences.length > 0 && (
+                {experiences.filter((e) => e.included !== false).length > 0 && (
                   <div className="py-0.5 space-y-1">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].experience}
                       </h2>
                     </div>
                     <div className="space-y-1.5">
-                      {experiences.map((exp) => (
+                      {experiences.filter((e) => e.included !== false).map((exp) => (
                         <div key={exp.id} className="text-[10.5px] space-y-0.5">
                           <div className="flex items-center justify-between font-bold text-[#191c1c]">
                             <span>{exp.role || "Posisi"} {exp.company ? `— ${exp.company}` : ""}</span>
@@ -1549,15 +1884,15 @@ export default function NewResumePage() {
                 )}
 
                 {/* Projects & Portfolio */}
-                {projects.length > 0 && (
+                {projects.filter((p) => p.included !== false).length > 0 && (
                   <div className="py-0.5 space-y-1">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].projects}
                       </h2>
                     </div>
                     <div className="space-y-1.5">
-                      {projects.map((proj) => (
+                      {projects.filter((p) => p.included !== false).map((proj) => (
                         <div key={proj.id} className="text-[10.5px] space-y-0.5">
                           <div className="flex items-center justify-between font-bold text-[#191c1c]">
                             <span>
@@ -1594,15 +1929,15 @@ export default function NewResumePage() {
                 )}
 
                 {/* Education */}
-                {education.length > 0 && (
+                {education.filter((e) => e.included !== false).length > 0 && (
                   <div className="py-0.5 space-y-1">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].education}
                       </h2>
                     </div>
                     <div className="space-y-1.5">
-                      {education.map((edu) => (
+                      {education.filter((e) => e.included !== false).map((edu) => (
                         <div key={edu.id} className="flex items-center justify-between text-[10.5px]">
                           <div>
                             <p className="font-bold text-[#191c1c]">{edu.degree}{edu.fieldOfStudy ? ` ${edu.fieldOfStudy}` : ""}</p>
@@ -1622,11 +1957,11 @@ export default function NewResumePage() {
                   </div>
                 )}
 
-                {/* Skills (Inline Sideways Layout for Maximum Space Saving) */}
+                {/* Skills */}
                 {skills.length > 0 && (
                   <div className="py-0.5 space-y-0.5">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].skills}
                       </h2>
                     </div>
@@ -1650,15 +1985,15 @@ export default function NewResumePage() {
                 )}
 
                 {/* Languages */}
-                {languages.length > 0 && (
+                {languages.filter((l) => l.included !== false).length > 0 && (
                   <div className="py-0.5 space-y-0.5">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].languages}
                       </h2>
                     </div>
                     <p className="text-[10.5px] leading-snug text-[#191c1c]">
-                      {languages.map((l) => {
+                      {languages.filter((l) => l.included !== false).map((l) => {
                         const formattedLevel = formatLanguageLevel(l.level, cvLanguage);
                         return formattedLevel ? `${l.name} (${formattedLevel})` : l.name;
                       }).join(" • ")}
@@ -1667,15 +2002,15 @@ export default function NewResumePage() {
                 )}
 
                 {/* Certifications */}
-                {certifications.length > 0 && (
+                {certifications.filter((c) => c.included !== false).length > 0 && (
                   <div className="py-0.5 space-y-0.5">
-                    <div className="border-b-2 border-black pb-0.5 mb-1">
-                      <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-[#191c1c]">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
                         {SECTION_TITLES[cvLanguage].certifications}
                       </h2>
                     </div>
                     <div className="space-y-1">
-                      {certifications.map((cert) => (
+                      {certifications.filter((c) => c.included !== false).map((cert) => (
                         <div key={cert.id} className="flex items-center justify-between text-[10.5px]">
                           <div>
                             <p className="font-bold text-[#191c1c]">{cert.name}</p>
@@ -1686,6 +2021,29 @@ export default function NewResumePage() {
                               {cert.issueDate} {cert.expiryDate ? `– ${cert.expiryDate}` : ""}
                             </p>
                           )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Achievements */}
+                {achievements.filter((a) => a.included !== false).length > 0 && (
+                  <div className="py-0.5 space-y-0.5">
+                    <div className={tStyle.sectionHeader}>
+                      <h2 className={tStyle.sectionTitle}>
+                        {SECTION_TITLES[cvLanguage].achievements}
+                      </h2>
+                    </div>
+                    <div className="space-y-1">
+                      {achievements.filter((a) => a.included !== false).map((ach) => (
+                        <div key={ach.id} className="text-[10.5px] space-y-0.5">
+                          <div className="flex items-center justify-between font-bold text-[#191c1c]">
+                            <span>{ach.title} {ach.issuer ? <span className="font-normal text-[#4c6079]">({ach.issuer})</span> : null}</span>
+                            {ach.date && <span className="font-mono text-[10px] text-[#191c1c] font-normal">{ach.date}</span>}
+                          </div>
+                          {ach.impact && <p className="text-[10px] font-semibold text-orange-950">{ach.impact}</p>}
+                          {ach.description && <p className="text-[10px] text-[#4c6079] leading-snug">{ach.description}</p>}
                         </div>
                       ))}
                     </div>
