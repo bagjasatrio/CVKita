@@ -129,10 +129,11 @@ export function EntryModal({
                 <div>
                   <label className="block font-medium text-slate-600 dark:text-zinc-400 mb-1">Email</label>
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="email"
                     value={formData.email || ""}
                     onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="email@example.com"
+                    placeholder="email@bebas.com"
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-orange-500"
                   />
                 </div>

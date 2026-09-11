@@ -130,7 +130,8 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label className="text-xs font-mono font-semibold text-slate-800 dark:text-zinc-200">Email Address *</label>
             <input
-              type={isUnlocked ? "email" : "text"}
+              type="text"
+              inputMode="email"
               name={isUnlocked ? "email" : "no_autofill_email"}
               required
               autoComplete={isUnlocked ? "email" : "off"}
@@ -238,7 +239,8 @@ export default function RegisterPage() {
                 <div>
                   <label className="block font-medium text-slate-800 dark:text-zinc-200 mb-1">Email {oauthProvider} Anda *</label>
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="email"
                     required
                     value={oauthEmail}
                     onChange={(e) => setOauthEmail(e.target.value)}

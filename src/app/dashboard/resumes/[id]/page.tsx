@@ -893,7 +893,8 @@ export default function ResumeStudioPage({ params }: { params: { id: string } })
                 <div>
                   <label className="block font-medium text-[#191c1c] dark:text-zinc-200 mb-1">Email</label>
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="email"
                     value={personalInfo.email}
                     onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-[#e1e3e2] dark:border-[#242c2a] bg-[#f8faf9] dark:bg-[#121816] text-[#191c1c] dark:text-zinc-100 text-xs focus:outline-none focus:border-orange-500"
