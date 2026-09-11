@@ -73,12 +73,6 @@ export default function LandingPage() {
           <a href="#features" className="hover:text-orange-600 dark:hover:text-white transition-colors">
             Fitur Utama
           </a>
-          <a href="#job-matches" className="hover:text-orange-600 dark:hover:text-white transition-colors">
-            Real-Time Job Matches
-          </a>
-          <a href="#cover-letter" className="hover:text-orange-600 dark:hover:text-white transition-colors">
-            Cover Letter AI
-          </a>
           <a href="#faq" className="hover:text-orange-600 dark:hover:text-white transition-colors">
             FAQ
           </a>
@@ -214,20 +208,6 @@ export default function LandingPage() {
                   className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                 >
                   Fitur Utama
-                </a>
-                <a
-                  href="#job-matches"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                >
-                  Real-Time Job Matches
-                </a>
-                <a
-                  href="#cover-letter"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                >
-                  Cover Letter AI
                 </a>
                 <a
                   href="#faq"
