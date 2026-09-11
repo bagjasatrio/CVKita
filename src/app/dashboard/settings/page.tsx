@@ -156,6 +156,12 @@ export default function SettingsPage() {
   const [notifStatus, setNotifStatus] = useState<string | null>(null);
 
   const handleSaveProfileInfo = async () => {
+    const isValidEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+    if (!isValidEmail) {
+      showToast("error", "Format Email Tidak Valid", "Silakan masukkan email resmi yang valid (contoh: nama@domain.com).");
+      return;
+    }
+
     updateUser({ name: fullName, email });
 
     saveProfile({

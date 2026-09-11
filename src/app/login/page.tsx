@@ -211,8 +211,7 @@ function LoginForm() {
               <div>
                 <label className="block font-medium text-slate-800 dark:text-zinc-200 mb-1">Email {oauthProvider} Anda *</label>
                 <input
-                  type="text"
-                  inputMode="email"
+                  type="email"
                   required
                   value={oauthEmail}
                   onChange={(e) => setOauthEmail(e.target.value)}

@@ -681,8 +681,7 @@ export default function NewResumePage() {
                   <div>
                     <label className="block font-medium text-[#191c1c] mb-1">Email</label>
                     <input
-                      type="text"
-                      inputMode="email"
+                      type="email"
                       value={personalInfo.email}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                       placeholder="nama@domain.com"

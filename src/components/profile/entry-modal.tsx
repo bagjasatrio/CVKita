@@ -79,6 +79,13 @@ export function EntryModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (section === "identity" && formData.email) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        alert("Format email tidak valid. Masukkan alamat email yang valid (contoh: nama@domain.com).");
+        return;
+      }
+    }
     onSave(formData);
     onClose();
   };
@@ -129,11 +136,10 @@ export function EntryModal({
                 <div>
                   <label className="block font-medium text-slate-600 dark:text-zinc-400 mb-1">Email</label>
                   <input
-                    type="text"
-                    inputMode="email"
+                    type="email"
                     value={formData.email || ""}
                     onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="email@bebas.com"
+                    placeholder="nama@domain.com"
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-orange-500"
                   />
                 </div>

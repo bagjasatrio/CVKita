@@ -25,6 +25,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export const isValidEmailFormat = (email: string): boolean => {
+  if (!email || !email.includes("@")) return false;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email.trim());
+};
+
 const getRegisteredAccounts = (): Array<{ id: string; name: string; email: string; pass: string; roleTitle: string; avatarInitials: string }> => {
   if (typeof window === "undefined") return [];
   try {
@@ -109,6 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (!isValidEmailFormat(cleanEmail)) {
+      setIsLoading(false);
+      throw new Error("Format email tidak valid. Silakan masukkan email resmi yang valid (contoh: nama@domain.com).");
+    }
+
     const registeredList = getRegisteredAccounts();
     const foundUser = registeredList.find((u) => u.email.toLowerCase().trim() === cleanEmail);
 
@@ -150,6 +161,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await new Promise((r) => setTimeout(r, 400));
 
     const cleanEmail = email.toLowerCase().trim();
+
+    if (!isValidEmailFormat(cleanEmail)) {
+      setIsLoading(false);
+      throw new Error("Format email tidak valid. Silakan masukkan email resmi yang valid (contoh: nama@domain.com).");
+    }
+
     const registeredList = getRegisteredAccounts();
 
     const existing = registeredList.find((u) => u.email.toLowerCase().trim() === cleanEmail);
@@ -199,6 +216,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await new Promise((r) => setTimeout(r, 400));
 
     const cleanEmail = email.toLowerCase().trim();
+
+    if (!isValidEmailFormat(cleanEmail)) {
+      setIsLoading(false);
+      throw new Error("Format email tidak valid. Silakan masukkan email resmi yang valid (contoh: nama@domain.com).");
+    }
+
     const registeredList = getRegisteredAccounts();
 
     const userIdx = registeredList.findIndex((u) => u.email.toLowerCase().trim() === cleanEmail);

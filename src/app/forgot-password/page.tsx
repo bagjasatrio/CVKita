@@ -142,8 +142,7 @@ export default function ForgotPasswordPage() {
                 <Mail className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Email Terdaftar *
               </label>
               <input
-                type="text"
-                inputMode="email"
+                type="email"
                 required
                 placeholder="nama@domain.com"
                 value={email}
