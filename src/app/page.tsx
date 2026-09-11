@@ -66,8 +66,8 @@ export default function LandingPage() {
           </span>
         </div>
 
-        {/* Center Nav Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        {/* Center Nav Links (Desktop - Absolutely Centered) */}
+        <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400 absolute left-1/2 -translate-x-1/2">
           <a href="#how-it-works" className="hover:text-orange-600 dark:hover:text-white transition-colors">
             Cara Kerja
           </a>
@@ -77,21 +77,20 @@ export default function LandingPage() {
           <a href="#faq" className="hover:text-orange-600 dark:hover:text-white transition-colors">
             FAQ
           </a>
-        </div>
-
-        {/* Right Nav Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          {/* Support CVKita Link */}
           <a
             href="https://tako.id/BAGJA"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-orange-200/80 dark:border-orange-900/60 bg-orange-50/70 dark:bg-orange-950/40 text-orange-900 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/60 text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-orange-200/80 dark:border-orange-900/60 bg-orange-50/80 dark:bg-orange-950/40 text-orange-900 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/70 text-xs font-semibold transition-colors"
             title="Dukung Pengembangan CVKita"
           >
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
-            <span className="hidden xs:inline">Dukung CVKita</span>
+            <span>Dukung CVKita ☕</span>
           </a>
+        </div>
+
+        {/* Right Nav Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Theme Selector Dropdown */}
           <div className="relative">
             <button
@@ -227,6 +226,16 @@ export default function LandingPage() {
                   className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                 >
                   FAQ
+                </a>
+                <a
+                  href="https://tako.id/BAGJA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 p-2.5 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-orange-900 dark:text-orange-300 font-semibold border border-orange-200/80 dark:border-orange-900/60"
+                >
+                  <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                  <span>Dukung CVKita ☕</span>
                 </a>
               </div>
             </div>
