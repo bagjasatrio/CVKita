@@ -246,22 +246,22 @@ export default function SettingsPage() {
         <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">Manage your account, preferences, and privacy.</p>
       </div>
 
-      <div className="flex gap-6">
-        {/* Sidebar */}
-        <div className="w-52 flex-shrink-0">
-          <nav className="space-y-1">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar Navigation (Horizontal scroll/flex-wrap on mobile, vertical sidebar on desktop) */}
+        <div className="w-full lg:w-52 flex-shrink-0">
+          <nav className="flex flex-row overflow-x-auto lg:flex-col gap-1.5 pb-1 lg:pb-0 scrollbar-none">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
+                className={`flex-shrink-0 lg:w-full flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap ${
                   activeTab === id
                     ? "bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold shadow-xs"
-                    : "text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                    : "text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 bg-white/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800/80 lg:border-none"
                 }`}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
-                {label}
+                <span>{label}</span>
               </button>
             ))}
           </nav>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-800 dark:text-zinc-200">Full Name</label>
                     <input
@@ -457,7 +457,7 @@ export default function SettingsPage() {
                 {/* Provider Selection */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-slate-800 dark:text-zinc-200">Select Active AI Engine</label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { id: "gemini", label: "Google Gemini 1.5", desc: "Fast & High Quality (Free Tier Available)" },
                       { id: "openai", label: "OpenAI GPT-4o-mini", desc: "Standard Production Grade LLM" },
@@ -673,7 +673,7 @@ export default function SettingsPage() {
               </h2>
               <div>
                 <p className="text-sm font-medium text-slate-800 dark:text-zinc-200 mb-3">Theme</p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {([
                     { value: "light", label: "Light", icon: Sun },
                     { value: "dark", label: "Dark", icon: Moon },
