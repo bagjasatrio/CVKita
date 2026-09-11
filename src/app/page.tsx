@@ -58,7 +58,7 @@ export default function LandingPage() {
           <img
             src="/logo.png"
             alt="CVKita Logo"
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-contain shrink-0"
+            className="w-auto h-7 sm:h-8 object-contain shrink-0"
           />
           <span className="font-extrabold text-lg sm:text-xl tracking-tight text-zinc-900 dark:text-white flex items-center gap-1.5">
             CVKita
@@ -680,7 +680,7 @@ export default function LandingPage() {
                 <img
                   src="/logo.png"
                   alt="CVKita Logo"
-                  className="w-10 h-10 rounded-xl object-contain shrink-0"
+                  className="w-auto h-8 object-contain shrink-0"
                 />
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                   CVKita

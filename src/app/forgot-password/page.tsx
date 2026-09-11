@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
             <img
               src="/logo.png"
               alt="CVKita Logo"
-              className="w-9 h-9 rounded-xl object-contain shrink-0"
+              className="w-auto h-8 object-contain shrink-0"
             />
             CVKita
           </Link>

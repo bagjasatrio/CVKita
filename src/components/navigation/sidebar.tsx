@@ -79,7 +79,7 @@ export function Sidebar({
             <img
               src="/logo.png"
               alt="CVKita Logo"
-              className="w-8 h-8 rounded-lg object-contain shrink-0"
+              className="w-auto h-7 object-contain shrink-0"
             />
             <div>
               <span className="font-semibold tracking-tight text-white text-base">CVKita</span>

@@ -30,7 +30,7 @@ export default function DashboardLayout({
         <img
           src="/logo.png"
           alt="CVKita Logo"
-          className="w-10 h-10 rounded-xl object-contain animate-pulse shrink-0"
+          className="w-auto h-8 object-contain animate-pulse shrink-0"
         />
         <div className="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-zinc-400">
           <Sparkles className="w-4 h-4 animate-spin text-orange-500" /> Authenticating Session...
