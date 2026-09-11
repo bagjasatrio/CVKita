@@ -27,6 +27,7 @@ import {
   Globe,
   Menu,
   X,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/components/theme-provider";
@@ -80,6 +81,17 @@ export default function LandingPage() {
 
         {/* Right Nav Actions */}
         <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Support CVKita Link */}
+          <a
+            href="https://tako.id/BAGJA"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-orange-200/80 dark:border-orange-900/60 bg-orange-50/70 dark:bg-orange-950/40 text-orange-900 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/60 text-xs font-semibold transition-colors"
+            title="Dukung Pengembangan CVKita"
+          >
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
+            <span className="hidden xs:inline">Dukung CVKita</span>
+          </a>
           {/* Theme Selector Dropdown */}
           <div className="relative">
             <button

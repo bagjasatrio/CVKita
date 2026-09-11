@@ -13,6 +13,7 @@ import {
   AlertCircle,
   ExternalLink,
   Plus,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useUserProfile } from "@/lib/use-user-profile";
@@ -245,6 +246,27 @@ export default function DashboardOverviewPage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Subtle Support CVKita Banner */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl border border-orange-200/80 dark:border-zinc-800 bg-orange-50/50 dark:bg-zinc-900/40 text-xs text-zinc-700 dark:text-zinc-300">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-950/80 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+          </div>
+          <span>
+            <strong>CVKita 100% Gratis & Bebas Iklan.</strong> Jika platform ini membantumu melamar kerja, kamu bisa memberikan apresiasi sukarela.
+          </span>
+        </div>
+        <a
+          href="https://tako.id/BAGJA"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-semibold text-xs transition-colors shadow-xs"
+        >
+          <span>Dukung CVKita ☕</span>
+          <ExternalLink className="w-3 h-3 text-white" />
+        </a>
       </div>
     </div>
   );
