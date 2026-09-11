@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   LogOut,
   Home,
+  Plus,
 } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,15 @@ export function Sidebar({
 
         {/* Navigation Links */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <Link
+            href="/dashboard/resumes/new?fresh=true"
+            onClick={onCloseMobile}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 transition-all mb-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4 text-white" />
+            <span>+ Buat Resume Baru</span>
+          </Link>
+
           <Link
             href="/"
             onClick={onCloseMobile}

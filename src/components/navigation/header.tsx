@@ -55,21 +55,21 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
   })();
 
   return (
-    <header className="h-16 shrink-0 border-b border-slate-200 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 print:hidden transition-colors">
+    <header className="h-16 shrink-0 border-b border-slate-200 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-2.5 sm:px-6 flex items-center justify-between sticky top-0 z-40 print:hidden transition-colors">
       {/* Left side: Hamburger button (Mobile) + Search Bar */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-1 min-w-0">
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="p-2 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 lg:hidden shrink-0 transition-colors"
+          className="p-1.5 sm:p-2 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 lg:hidden shrink-0 transition-colors"
           aria-label="Open Navigation Menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Search Input */}
-        <div className="relative w-36 sm:w-60 md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+        <div className="relative w-24 xs:w-32 sm:w-56 md:w-80 shrink-1 min-w-0">
+          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
           <input
             type="text"
             name="search_query_unlocked"
@@ -78,30 +78,31 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
             onFocus={() => setIsReadOnly(false)}
             onClick={() => setIsReadOnly(false)}
             placeholder="Search..."
-            className="w-full bg-slate-100 dark:bg-zinc-900/80 text-xs sm:text-sm pl-9 pr-3 py-1.5 rounded-lg border border-transparent dark:border-zinc-800 text-slate-900 dark:text-zinc-100 focus:border-orange-500 dark:focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
+            className="w-full bg-slate-100 dark:bg-zinc-900/80 text-xs sm:text-sm pl-8 sm:pl-9 pr-2 sm:pr-3 py-1.5 rounded-lg border border-transparent dark:border-zinc-800 text-slate-900 dark:text-zinc-100 focus:border-orange-500 dark:focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 truncate"
           />
         </div>
       </div>
 
       {/* Action Buttons & Profile */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        {/* Landing Page Button */}
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+        {/* Landing Page Button (Desktop & Tablet) */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors border border-slate-200/80 dark:border-zinc-800 shrink-0"
+          className="hidden md:inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors border border-slate-200/80 dark:border-zinc-800 shrink-0"
           title="Kembali ke Landing Page Utama"
         >
           <Home className="w-4 h-4 text-orange-500" />
-          <span className="hidden md:inline">Landing Page</span>
+          <span>Landing Page</span>
         </Link>
 
+        {/* New Resume Button */}
         <Link
           href="/dashboard/resumes/new?fresh=true"
-          className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-xs shrink-0"
+          className="inline-flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-xs shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span className="hidden sm:inline">New Resume</span>
-          <span className="sm:hidden">CV</span>
+          <span className="sm:hidden text-[11px]">New</span>
         </Link>
 
         {/* Quick AI Assistant Menu (Sparkles Icon) */}
