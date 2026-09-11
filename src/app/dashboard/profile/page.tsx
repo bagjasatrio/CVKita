@@ -63,7 +63,7 @@ export default function MasterCareerProfilePage() {
 
   const [entryModal, setEntryModal] = useState<{
     isOpen: boolean;
-    section: "experience" | "education" | "project" | "skill" | "certification" | "identity";
+    section: "experience" | "education" | "project" | "skill" | "certification" | "identity" | "summary";
     initialData?: any;
     editIndex?: number;
   }>({ isOpen: false, section: "experience" });
@@ -160,10 +160,21 @@ export default function MasterCareerProfilePage() {
         headline: data.headline,
         email: data.email,
         location: data.location,
+        links: {
+          ...profile.links,
+          github: data.github !== undefined ? data.github : profile.links?.github,
+          linkedin: data.linkedin !== undefined ? data.linkedin : profile.links?.linkedin,
+          website: data.website !== undefined ? data.website : profile.links?.website,
+        },
+      });
+    } else if (entryModal.section === "summary") {
+      updateProfileData({
+        ...profile,
+        summary: data.summary,
       });
     } else if (entryModal.section === "experience") {
       const exps = [...(profile.experiences || [])];
-      if (entryModal.initialData) {
+      if (entryModal.initialData?.id) {
         const idx = exps.findIndex((e) => e.id === entryModal.initialData.id);
         if (idx !== -1) exps[idx] = { ...exps[idx], ...data };
       } else {
@@ -174,7 +185,7 @@ export default function MasterCareerProfilePage() {
           sourceDocument: "Manual Entry (Verified)",
           bullets: Array.isArray(data.bullets)
             ? data.bullets
-            : data.bullets
+            : typeof data.bullets === "string"
             ? data.bullets.split("\n").filter(Boolean)
             : ["Key responsibility and achievement."],
         });
@@ -182,34 +193,54 @@ export default function MasterCareerProfilePage() {
       updateProfileData({ ...profile, experiences: exps });
     } else if (entryModal.section === "skill") {
       const skills = [...(profile.skills || [])];
-      skills.push({
-        id: `sk_${Date.now()}`,
-        name: data.name,
-        category: data.category || "General",
-        level: data.level || "Verified",
-        verified: true,
-      });
+      if (entryModal.initialData?.id) {
+        const idx = skills.findIndex((s) => s.id === entryModal.initialData.id);
+        if (idx !== -1) skills[idx] = { ...skills[idx], ...data };
+      } else {
+        skills.push({
+          id: `sk_${Date.now()}`,
+          name: data.name,
+          category: data.category || "General",
+          level: data.level || "Verified",
+          verified: true,
+        });
+      }
       updateProfileData({ ...profile, skills });
     } else if (entryModal.section === "project") {
       const projs = [...(profile.projects || [])];
-      projs.unshift({
-        ...data,
-        id: `proj_${Date.now()}`,
-        technologies: Array.isArray(data.technologies)
-          ? data.technologies
-          : data.technologies
-          ? data.technologies.split(",")
-          : ["TypeScript"],
-        verified: true,
-      });
+      if (entryModal.initialData?.id) {
+        const idx = projs.findIndex((p) => p.id === entryModal.initialData.id);
+        if (idx !== -1) projs[idx] = { ...projs[idx], ...data };
+      } else {
+        projs.unshift({
+          ...data,
+          id: `proj_${Date.now()}`,
+          technologies: Array.isArray(data.technologies)
+            ? data.technologies
+            : typeof data.technologies === "string"
+            ? data.technologies.split(",").map((s: string) => s.trim())
+            : ["TypeScript"],
+          verified: true,
+        });
+      }
       updateProfileData({ ...profile, projects: projs });
     } else if (entryModal.section === "education") {
       const edus = [...(profile.educations || [])];
-      edus.unshift({ ...data, id: `edu_${Date.now()}`, verified: true });
+      if (entryModal.initialData?.id) {
+        const idx = edus.findIndex((e) => e.id === entryModal.initialData.id);
+        if (idx !== -1) edus[idx] = { ...edus[idx], ...data };
+      } else {
+        edus.unshift({ ...data, id: `edu_${Date.now()}`, verified: true });
+      }
       updateProfileData({ ...profile, educations: edus });
     } else if (entryModal.section === "certification") {
       const certs = [...(profile.certifications || [])];
-      certs.unshift({ ...data, id: `cert_${Date.now()}`, verified: true });
+      if (entryModal.initialData?.id) {
+        const idx = certs.findIndex((c) => c.id === entryModal.initialData.id);
+        if (idx !== -1) certs[idx] = { ...certs[idx], ...data };
+      } else {
+        certs.unshift({ ...data, id: `cert_${Date.now()}`, verified: true });
+      }
       updateProfileData({ ...profile, certifications: certs });
     }
   };
@@ -217,14 +248,35 @@ export default function MasterCareerProfilePage() {
   const handleDeleteExperience = (id: string) => {
     updateProfileData({
       ...profile,
-      experiences: profile.experiences.filter((e: any) => e.id !== id),
+      experiences: (profile.experiences || []).filter((e: any) => e.id !== id),
     });
   };
 
   const handleDeleteSkill = (id: string) => {
     updateProfileData({
       ...profile,
-      skills: profile.skills.filter((s: any) => s.id !== id),
+      skills: (profile.skills || []).filter((s: any) => s.id !== id),
+    });
+  };
+
+  const handleDeleteProject = (id: string) => {
+    updateProfileData({
+      ...profile,
+      projects: (profile.projects || []).filter((p: any) => p.id !== id),
+    });
+  };
+
+  const handleDeleteEducation = (id: string) => {
+    updateProfileData({
+      ...profile,
+      educations: (profile.educations || []).filter((e: any) => e.id !== id),
+    });
+  };
+
+  const handleDeleteCertification = (id: string) => {
+    updateProfileData({
+      ...profile,
+      certifications: (profile.certifications || []).filter((c: any) => c.id !== id),
     });
   };
 
@@ -363,6 +415,9 @@ export default function MasterCareerProfilePage() {
                       headline: profile.headline,
                       email: profile.email,
                       location: profile.location,
+                      github: profile.links?.github || "",
+                      linkedin: profile.links?.linkedin || "",
+                      website: profile.links?.website || "",
                     },
                   })
                 }
@@ -376,7 +431,6 @@ export default function MasterCareerProfilePage() {
               <div>
                 <span className="font-semibold text-slate-400 dark:text-zinc-500 uppercase text-[10px]">Full Legal Name</span>
                 <p className="text-sm font-bold text-slate-900 dark:text-zinc-100 mt-0.5">{profile.fullName || "Not specified"}</p>
-                <span className="text-[11px] text-slate-500 dark:text-zinc-400">Pronouns: {profile.pronouns || "they/them"}</span>
               </div>
               <div>
                 <span className="font-semibold text-slate-400 dark:text-zinc-500 uppercase text-[10px]">Designation</span>
@@ -428,10 +482,25 @@ export default function MasterCareerProfilePage() {
                   Verified Professional Synthesis
                 </h2>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEntryModal({
+                      isOpen: true,
+                      section: "summary",
+                      initialData: { summary: profile.summary || "" },
+                    })
+                  }
+                  className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+                >
+                  <Edit2 className="w-3.5 h-3.5" /> Edit Summary
+                </button>
+              </div>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-              {profile.summary || "No professional summary added yet. Click AI Content Polish or Edit to write a summary."}
+              {profile.summary || "No professional summary added yet. Click Edit Summary or AI Content Polish to write a summary."}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-1">
@@ -553,7 +622,117 @@ export default function MasterCareerProfilePage() {
             )}
           </section>
 
-          {/* SECTION 4: Skills */}
+          {/* SECTION 4: Projects */}
+          <section id="projects" className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider">
+                  Featured Projects ({profile.projects?.length || 0})
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEntryModal({ isOpen: true, section: "project" })}
+                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Project
+              </button>
+            </div>
+
+            {profile.projects?.length > 0 ? (
+              <div className="space-y-4">
+                {profile.projects.map((proj: any) => (
+                  <div key={proj.id} className="p-4 rounded-xl bg-slate-50/80 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">{proj.title}</h3>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setEntryModal({ isOpen: true, section: "project", initialData: proj })}
+                          className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProject(proj.id)}
+                          className="p-1.5 rounded-md hover:bg-red-500/10 text-red-500 dark:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {proj.description && <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{proj.description}</p>}
+                    {proj.technologies && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {(Array.isArray(proj.technologies) ? proj.technologies : [proj.technologies]).map((tech: string, idx: number) => (
+                          <span key={idx} className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-200/70 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-zinc-400">No projects listed. Click Add Project to highlight your portfolio.</p>
+            )}
+          </section>
+
+          {/* SECTION 5: Education */}
+          <section id="education" className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider">
+                  Education ({profile.educations?.length || 0})
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEntryModal({ isOpen: true, section: "education" })}
+                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Education
+              </button>
+            </div>
+
+            {profile.educations?.length > 0 ? (
+              <div className="space-y-3">
+                {profile.educations.map((edu: any) => (
+                  <div key={edu.id} className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-zinc-100">{edu.institution}</h3>
+                      <p className="text-slate-500 dark:text-zinc-400">{edu.degree} {edu.fieldOfStudy ? `• ${edu.fieldOfStudy}` : ""} ({edu.startDate || ""} - {edu.endDate || ""})</p>
+                      {edu.grade && <span className="text-[11px] font-mono text-orange-600 dark:text-orange-400">GPA: {edu.grade}</span>}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEntryModal({ isOpen: true, section: "education", initialData: edu })}
+                        className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEducation(edu.id)}
+                        className="p-1.5 rounded-md hover:bg-red-500/10 text-red-500 dark:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-zinc-400">No education history added yet.</p>
+            )}
+          </section>
+
+          {/* SECTION 6: Skills */}
           <section id="skills" className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
@@ -582,6 +761,13 @@ export default function MasterCareerProfilePage() {
                     <span>{s.name}</span>
                     <button
                       type="button"
+                      onClick={() => setEntryModal({ isOpen: true, section: "skill", initialData: s })}
+                      className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleDeleteSkill(s.id)}
                       className="text-slate-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                     >
@@ -592,6 +778,56 @@ export default function MasterCareerProfilePage() {
               </div>
             ) : (
               <p className="text-xs text-slate-500 dark:text-zinc-400">No skills recorded. Click Add Skill to list your technologies.</p>
+            )}
+          </section>
+
+          {/* SECTION 7: Certifications */}
+          <section id="certifications" className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider">
+                  Certifications ({profile.certifications?.length || 0})
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEntryModal({ isOpen: true, section: "certification" })}
+                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Certification
+              </button>
+            </div>
+
+            {profile.certifications?.length > 0 ? (
+              <div className="space-y-3">
+                {profile.certifications.map((cert: any) => (
+                  <div key={cert.id} className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-zinc-100">{cert.name}</h3>
+                      <p className="text-slate-500 dark:text-zinc-400">{cert.issuer} {cert.issueDate ? `• ${cert.issueDate}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEntryModal({ isOpen: true, section: "certification", initialData: cert })}
+                        className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCertification(cert.id)}
+                        className="p-1.5 rounded-md hover:bg-red-500/10 text-red-500 dark:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-zinc-400">No certifications added yet.</p>
             )}
           </section>
         </div>
