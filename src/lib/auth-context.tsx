@@ -100,14 +100,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const jwtPayload = accessToken ? parseJwtPayload(accessToken) : null;
 
         let realEmail = jwtPayload?.email || jwtPayload?.user_metadata?.email;
-        let realName = jwtPayload?.user_metadata?.full_name || jwtPayload?.user_metadata?.name || (realEmail ? realEmail.split("@")[0] : null);
+        const provider = jwtPayload?.app_metadata?.provider || (jwtPayload?.user_metadata?.user_name ? "github" : "google");
+        
+        let realName = provider === "github"
+          ? (jwtPayload?.user_metadata?.user_name || jwtPayload?.user_metadata?.preferred_username || jwtPayload?.user_metadata?.full_name || jwtPayload?.user_metadata?.name)
+          : (jwtPayload?.user_metadata?.full_name || jwtPayload?.user_metadata?.name || jwtPayload?.user_metadata?.user_name);
 
         if (realEmail) {
           realEmail = realEmail.toLowerCase().trim();
-          realName = realName || "Pengguna OAuth";
+          realName = realName || (provider === "github" ? "GitHub User" : "Google User");
 
+          const accountId = `usr_${provider}_${realEmail.replace(/[^a-z0-9]/g, "_")}`;
           const registeredList = getRegisteredAccounts();
-          let existingUser = registeredList.find((u) => u.email.toLowerCase().trim() === realEmail);
+          let existingUser = registeredList.find((u) => u.id === accountId);
 
           const nameParts = realName.trim().split(" ");
           const initials =
@@ -117,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (!existingUser) {
             existingUser = {
-              id: `usr_${realEmail.replace(/[^a-z0-9]/g, "_")}`,
+              id: accountId,
               name: realName,
               email: realEmail,
               pass: "oauth-pass",
@@ -125,6 +130,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               avatarInitials: initials,
             };
             localStorage.setItem("cvforge_registered_accounts", JSON.stringify([...registeredList, existingUser]));
+          } else {
+            // Update name if changed
+            existingUser.name = realName;
+            existingUser.avatarInitials = initials;
+            const updated = registeredList.map(u => u.id === accountId ? existingUser : u);
+            localStorage.setItem("cvforge_registered_accounts", JSON.stringify(updated));
           }
 
           const oAuthSession: UserSession = {
