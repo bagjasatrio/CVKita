@@ -76,9 +76,11 @@ export function Sidebar({
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-800/80">
           <Link href="/dashboard" onClick={onCloseMobile} className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-              CK
-            </div>
+            <img
+              src="/logo.png"
+              alt="CVKita Logo"
+              className="w-8 h-8 rounded-lg object-contain shrink-0"
+            />
             <div>
               <span className="font-semibold tracking-tight text-white text-base">CVKita</span>
               <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-orange-950/60 text-orange-300 border border-orange-800/60 font-medium">

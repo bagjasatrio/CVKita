@@ -27,9 +27,11 @@ export default function DashboardLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 rounded-xl bg-zinc-900 text-orange-500 dark:bg-zinc-800 flex items-center justify-center font-bold font-mono text-base shadow-sm animate-pulse border border-zinc-700">
-          CK
-        </div>
+        <img
+          src="/logo.png"
+          alt="CVKita Logo"
+          className="w-10 h-10 rounded-xl object-contain animate-pulse shrink-0"
+        />
         <div className="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-zinc-400">
           <Sparkles className="w-4 h-4 animate-spin text-orange-500" /> Authenticating Session...
         </div>

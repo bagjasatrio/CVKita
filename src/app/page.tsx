@@ -55,9 +55,11 @@ export default function LandingPage() {
       {/* Top Navigation Bar */}
       <nav className="h-16 sm:h-20 border-b border-orange-100 dark:border-zinc-800 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-xl sticky top-0 z-50 px-3 sm:px-8 lg:px-12 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
-            CK
-          </div>
+          <img
+            src="/logo.png"
+            alt="CVKita Logo"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-contain shrink-0"
+          />
           <span className="font-extrabold text-lg sm:text-xl tracking-tight text-zinc-900 dark:text-white flex items-center gap-1.5">
             CVKita
             <span className="hidden xs:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-900">
@@ -675,9 +677,11 @@ export default function LandingPage() {
             {/* Column 1: Brand & Mission (Spans 2 cols) */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 text-white flex items-center justify-center font-bold font-mono text-base shadow-sm">
-                  CK
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="CVKita Logo"
+                  className="w-10 h-10 rounded-xl object-contain shrink-0"
+                />
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                   CVKita
                   <span className="text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-900 dark:text-orange-400 border border-orange-200 dark:border-orange-900">

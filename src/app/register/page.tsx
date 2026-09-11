@@ -76,9 +76,11 @@ export default function RegisterPage() {
         {/* Header Branding */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold font-mono text-orange-600 dark:text-orange-400">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center font-bold shadow-xs">
-              CK
-            </div>
+            <img
+              src="/logo.png"
+              alt="CVKita Logo"
+              className="w-9 h-9 rounded-xl object-contain shrink-0"
+            />
             CVKita
           </Link>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">Create Your Account</h1>
