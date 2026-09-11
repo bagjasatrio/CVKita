@@ -75,6 +75,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check auth state synchronously on mount
   useEffect(() => {
     try {
+      // Check if arriving from Supabase OAuth with access_token in URL hash
+      if (typeof window !== "undefined" && window.location.hash.includes("access_token=")) {
+        setSessionCookie(true);
+        const storedUser = localStorage.getItem("cvforge_user");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
+        } else {
+          // Default Google OAuth user session if not created yet
+          const defaultOAuthUser: UserSession = {
+            id: "usr_google_user",
+            name: "Pengguna Google",
+            email: "user@gmail.com",
+            roleTitle: "Career Profile Owner",
+            avatarInitials: "GO",
+            isDemo: false,
+          };
+          localStorage.setItem("cvforge_user", JSON.stringify(defaultOAuthUser));
+          setUser(defaultOAuthUser);
+        }
+        // Clear hash and redirect to dashboard
+        window.history.replaceState(null, "", window.location.pathname);
+        router.push("/dashboard");
+        return;
+      }
+
       const storedUser = localStorage.getItem("cvforge_user");
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
@@ -90,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const login = async (email: string, pass: string, redirectTo: string = "/dashboard") => {
     setIsLoading(true);
