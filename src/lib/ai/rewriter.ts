@@ -98,10 +98,10 @@ CRITICAL ANTI-FABRICATION CONSTRAINTS (PRD §18):
   });
 }
 
-function rewriteWithHeuristics(
+export function rewriteWithHeuristics(
   text: string,
   type: "bullet" | "summary",
-  style: "action_oriented" | "concise" | "metric_focused"
+  style: "action_oriented" | "concise" | "metric_focused" = "action_oriented"
 ): RewriteResponse {
   // Extract numbers, percentages, or tech keywords to guarantee preservation
   const numbers = text.match(/\b\d+(?:[\.,]\d+)?%?\b/g) || [];
