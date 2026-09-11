@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ShieldCheck, ArrowRight, Github, Chrome } from "lucide-react";
+import { Sparkles, ShieldCheck, ArrowRight, Github, Chrome, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -137,20 +138,31 @@ export default function RegisterPage() {
 
           <div className="space-y-1">
             <label className="text-xs font-mono font-semibold text-slate-800 dark:text-zinc-200">Password *</label>
-            <input
-              type={isUnlocked ? "password" : "text"}
-              name={isUnlocked ? "password" : "no_autofill_password"}
-              required
-              autoComplete={isUnlocked ? "new-password" : "off"}
-              readOnly={!isUnlocked}
-              onFocus={() => setIsUnlocked(true)}
-              onClick={() => setIsUnlocked(true)}
-              onMouseDown={() => setIsUnlocked(true)}
-              placeholder="Minimum 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-xs border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100"
-            />
+            <div className="relative">
+              <input
+                type={isUnlocked ? (showPassword ? "text" : "password") : "text"}
+                name={isUnlocked ? "password" : "no_autofill_password"}
+                required
+                autoComplete={isUnlocked ? "new-password" : "off"}
+                readOnly={!isUnlocked}
+                onFocus={() => setIsUnlocked(true)}
+                onClick={() => setIsUnlocked(true)}
+                onMouseDown={() => setIsUnlocked(true)}
+                placeholder="Minimum 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 pr-10 text-xs border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-start gap-2 pt-1">

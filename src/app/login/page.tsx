@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Sparkles, ShieldCheck, ArrowRight, Github, Chrome } from "lucide-react";
+import { Sparkles, ShieldCheck, ArrowRight, Github, Chrome, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
@@ -13,6 +13,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
@@ -124,20 +125,31 @@ function LoginForm() {
               Forgot password?
             </a>
           </div>
-          <input
-            type={isUnlocked ? "password" : "text"}
-            name={isUnlocked ? "password" : "no_autofill_password"}
-            required
-            autoComplete={isUnlocked ? "current-password" : "off"}
-            readOnly={!isUnlocked}
-            onFocus={() => setIsUnlocked(true)}
-            onClick={() => setIsUnlocked(true)}
-            onMouseDown={() => setIsUnlocked(true)}
-            placeholder="••••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 text-xs border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100"
-          />
+          <div className="relative">
+            <input
+              type={isUnlocked ? (showPassword ? "text" : "password") : "text"}
+              name={isUnlocked ? "password" : "no_autofill_password"}
+              required
+              autoComplete={isUnlocked ? "current-password" : "off"}
+              readOnly={!isUnlocked}
+              onFocus={() => setIsUnlocked(true)}
+              onClick={() => setIsUnlocked(true)}
+              onMouseDown={() => setIsUnlocked(true)}
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3.5 py-2.5 pr-10 text-xs border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors p-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <button
