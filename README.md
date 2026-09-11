@@ -1,3 +1,4 @@
+![Uploading image.png…]()
 # CVKita - AI-Powered Career Profile & Resume Platform
 
 ![CVKita Banner](https://img.shields.io/badge/CVKita-v1.0-orange?style=for-the-badge&logo=next.js)
