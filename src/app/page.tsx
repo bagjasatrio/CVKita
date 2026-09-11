@@ -25,6 +25,8 @@ import {
   GraduationCap,
   Cpu,
   Globe,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/components/theme-provider";
@@ -33,6 +35,7 @@ export default function LandingPage() {
   const { isAuthenticated, user } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"simulator" | "ats" | "vault">("simulator");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -49,21 +52,21 @@ export default function LandingPage() {
       </div>
 
       {/* Top Navigation Bar */}
-      <nav className="h-20 border-b border-orange-100 dark:border-zinc-800 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 flex items-center justify-between transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+      <nav className="h-16 sm:h-20 border-b border-orange-100 dark:border-zinc-800 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-xl sticky top-0 z-50 px-3 sm:px-8 lg:px-12 flex items-center justify-between transition-colors">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
             CK
           </div>
-          <span className="font-extrabold text-xl tracking-tight text-zinc-900 dark:text-white flex items-center gap-1.5">
+          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-zinc-900 dark:text-white flex items-center gap-1.5">
             CVKita
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-900">
+            <span className="hidden xs:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-900">
               AI Platform
             </span>
           </span>
         </div>
 
-        {/* Center Nav Links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        {/* Center Nav Links (Desktop) */}
+        <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
           <a href="#how-it-works" className="hover:text-orange-600 dark:hover:text-white transition-colors">
             Cara Kerja
           </a>
@@ -81,14 +84,14 @@ export default function LandingPage() {
           </a>
         </div>
 
-        {/* Right Nav Actions: Theme Toggle + Auth Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Right Nav Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Theme Selector Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-              className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 text-xs font-medium"
+              className="p-1.5 sm:p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 text-xs font-medium"
               title="Ganti Tema"
             >
               {resolvedTheme === "dark" ? (
@@ -96,8 +99,8 @@ export default function LandingPage() {
               ) : (
                 <Sun className="w-4 h-4 text-amber-500" />
               )}
-              <span className="hidden sm:inline capitalize">{theme}</span>
-              <ChevronDown className="w-3 h-3 text-zinc-400" />
+              <span className="hidden md:inline capitalize">{theme}</span>
+              <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:inline" />
             </button>
 
             {isThemeDropdownOpen && (
@@ -114,7 +117,7 @@ export default function LandingPage() {
                       : "text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   }`}
                 >
-                  <Sun className="w-3.5 h-3.5 text-amber-500" /> Terang (Light)
+                  <Sun className="w-3.5 h-3.5 text-amber-500" /> Terang
                 </button>
                 <button
                   type="button"
@@ -128,7 +131,7 @@ export default function LandingPage() {
                       : "text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   }`}
                 >
-                  <Moon className="w-3.5 h-3.5 text-orange-400" /> Gelap (Dark)
+                  <Moon className="w-3.5 h-3.5 text-orange-400" /> Gelap
                 </button>
                 <button
                   type="button"
@@ -152,31 +155,113 @@ export default function LandingPage() {
           {isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm shrink-0"
             >
-              <UserCheck className="w-4 h-4 text-white" />
+              <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
               <span className="hidden sm:inline">Dashboard ({user?.name.split(" ")[0]})</span>
-              <span className="sm:hidden">Dashboard</span>
+              <span className="sm:hidden text-[11px]">Dashboard</span>
             </Link>
           ) : (
             <>
               <Link
                 href="/login"
-                className="text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-white px-2.5 py-2 transition-colors flex items-center gap-1.5"
+                className="hidden sm:flex text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-white px-2 py-1.5 transition-colors items-center gap-1"
               >
                 <LogIn className="w-4 h-4" /> Masuk
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm shrink-0"
               >
-                <span>Mulai Sekarang</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Mulai</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Link>
             </>
           )}
+
+          {/* Mobile Menu Hamburger Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-1.5 sm:p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 lg:hidden transition-colors shrink-0"
+            aria-label="Toggle Mobile Menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Drawer Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden animate-in fade-in">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="fixed top-16 right-0 bottom-0 w-72 bg-white dark:bg-[#09090b] border-l border-zinc-200 dark:border-zinc-800 p-6 shadow-2xl z-50 flex flex-col justify-between overflow-y-auto space-y-6 animate-in slide-in-from-right">
+            <div className="space-y-4">
+              <div className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                Navigasi Platform
+              </div>
+              <div className="space-y-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                <a
+                  href="#how-it-works"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  Cara Kerja
+                </a>
+                <a
+                  href="#features"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  Fitur Utama
+                </a>
+                <a
+                  href="#job-matches"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  Real-Time Job Matches
+                </a>
+                <a
+                  href="#cover-letter"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  Cover Letter AI
+                </a>
+                <a
+                  href="#faq"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block p-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  FAQ
+                </a>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+              {!isAuthenticated && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-1.5 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                  >
+                    <LogIn className="w-4 h-4" /> Masuk
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 text-white text-xs font-semibold shadow-xs"
+                  >
+                    Daftar ↗
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative pt-12 sm:pt-16 pb-20 px-4 sm:px-8 lg:px-12 overflow-hidden flex-1 z-10">
