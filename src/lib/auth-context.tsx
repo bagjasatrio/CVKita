@@ -18,6 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, pass: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
+  resetPassword: (email: string, newPass: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<UserSession>) => void;
 }
@@ -193,6 +194,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/dashboard");
   };
 
+  const resetPassword = async (email: string, newPass: string) => {
+    setIsLoading(true);
+    await new Promise((r) => setTimeout(r, 400));
+
+    const cleanEmail = email.toLowerCase().trim();
+    const registeredList = getRegisteredAccounts();
+
+    const userIdx = registeredList.findIndex((u) => u.email.toLowerCase().trim() === cleanEmail);
+    if (userIdx === -1) {
+      setIsLoading(false);
+      throw new Error("Email ini belum terdaftar. Silakan periksa kembali email Anda.");
+    }
+
+    registeredList[userIdx].pass = newPass;
+    localStorage.setItem("cvforge_registered_accounts", JSON.stringify(registeredList));
+    setIsLoading(false);
+  };
+
   const logout = () => {
     setSessionCookie(false);
     localStorage.removeItem("cvforge_user");
@@ -224,6 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         register,
+        resetPassword,
         logout,
         updateUser,
       }}
