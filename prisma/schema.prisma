@@ -1,0 +1,268 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String?
+  avatarUrl       String?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  profile         Profile?
+  documents       Document[]
+  resumes         Resume[]
+  jobDescriptions JobDescription[]
+  aiGenerations   AIGeneration[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                   String          @id @default(cuid())
+  userId               String          @unique @map("user_id")
+  fullName             String?         @map("full_name")
+  headline             String?
+  email                String?
+  phone                String?
+  location             String?
+  summary              String?         @db.Text
+  website              String?
+  linkedin             String?
+  github               String?
+  completionPercentage Int             @default(0) @map("completion_percentage")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiences          Experience[]
+  educations           Education[]
+  projects             Project[]
+  skills               Skill[]
+  certifications       Certification[]
+  achievements         Achievement[]
+  resumes              Resume[]
+
+  @@map("profiles")
+}
+
+model Experience {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  company          String
+  role             String
+  location         String?
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  isCurrent        Boolean   @default(false) @map("is_current")
+  description      String?   @db.Text
+  bullets          Json?     // Array of verified bullet points
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("experiences")
+}
+
+model Education {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  institution      String
+  degree           String?
+  fieldOfStudy     String?   @map("field_of_study")
+  location         String?
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  grade            String?
+  activities       String?   @db.Text
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("educations")
+}
+
+model Project {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  title            String
+  role             String?
+  url              String?
+  githubUrl        String?   @map("github_url")
+  description      String?   @db.Text
+  bullets          Json?
+  technologies     Json?     // Array of strings
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("projects")
+}
+
+model Skill {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  name             String
+  category         String?   // e.g., "Languages", "Frameworks", "Tools"
+  proficiencyLevel String?   @map("proficiency_level") // e.g., "Beginner", "Intermediate", "Expert"
+  verified         Boolean   @default(false)
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("skills")
+}
+
+model Certification {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  name             String
+  issuer           String
+  issueDate        DateTime? @map("issue_date")
+  expiryDate       DateTime? @map("expiry_date")
+  credentialId     String?   @map("credential_id")
+  credentialUrl    String?   @map("credential_url")
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("certifications")
+}
+
+model Achievement {
+  id               String    @id @default(cuid())
+  profileId        String    @map("profile_id")
+  title            String
+  issuer           String?
+  issueDate        DateTime? @map("issue_date")
+  description      String?   @db.Text
+  confidenceScore  Float     @default(1.0) @map("confidence_score")
+  sourceDocumentId String?   @map("source_document_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceDocument   Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@map("achievements")
+}
+
+model Document {
+  id             String          @id @default(cuid())
+  userId         String          @map("user_id")
+  fileName       String          @map("file_name")
+  fileUrl        String          @map("file_url")
+  fileType       String          @map("file_type") // CV, CERTIFICATE, TRANSCRIPT, OTHER
+  fileSize       Int             @map("file_size")
+  mimeType       String          @map("mime_type")
+  uploadStatus   String          @default("PENDING") @map("upload_status") // PENDING, PROCESSING, COMPLETED, FAILED
+  extractedData  Json?           @map("extracted_data")
+  rawText        String?         @db.Text @map("raw_text")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiences    Experience[]
+  educations     Education[]
+  projects       Project[]
+  skills         Skill[]
+  certifications Certification[]
+  achievements   Achievement[]
+
+  @@index([userId])
+  @@map("documents")
+}
+
+model Resume {
+  id               String    @id @default(cuid())
+  userId           String    @map("user_id")
+  profileId        String    @map("profile_id")
+  title            String
+  targetRole       String?   @map("target_role")
+  templateId       String    @default("modern-clean") @map("template_id")
+  themeConfig      Json?     @map("theme_config")
+  contentSnapshot  Json      @map("content_snapshot") // Frozen structured data used for deterministic rendering
+  atsScoreEstimate Int?      @map("ats_score_estimate") // 0-100 compatibility estimate
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile          Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([profileId])
+  @@map("resumes")
+}
+
+model JobDescription {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  title            String
+  company          String?
+  rawText          String   @db.Text @map("raw_text")
+  requiredSkills   Json?    @map("required_skills")
+  preferredSkills  Json?    @map("preferred_skills")
+  keywords         Json?
+  responsibilities Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("job_descriptions")
+}
+
+model AIGeneration {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  type             String   // EXTRACTION, REWRITE, JOB_MATCH, ATS_ANALYSIS, FACT_VALIDATION
+  prompt           String?  @db.Text
+  model            String?
+  promptTokens     Int?     @map("prompt_tokens")
+  completionTokens Int?     @map("completion_tokens")
+  sourceReferences Json?    @map("source_references") // sourceIds audit trail
+  result           Json?
+  status           String   @default("COMPLETED")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("ai_generations")
+}
