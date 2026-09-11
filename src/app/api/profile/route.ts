@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId") || DEFAULT_USER_ID;
 
-    // Fetch profile from Supabase PostgreSQL via Prisma
-    let profile = await prisma.profile.findFirst({
+    // Fetch profile from Supabase PostgreSQL via Prisma strictly for requested userId
+    const profile = await prisma.profile.findFirst({
       where: { userId },
       include: {
         experiences: true,
@@ -35,22 +35,6 @@ export async function GET(req: NextRequest) {
         resumes: true,
       },
     });
-
-    if (!profile) {
-      // Fallback to existing primary profile if account specific profile doesn't exist yet
-      profile = await prisma.profile.findFirst({
-        include: {
-          experiences: true,
-          educations: true,
-          projects: true,
-          skills: true,
-          certifications: true,
-          achievements: true,
-          resumes: true,
-        },
-        orderBy: { createdAt: "asc" },
-      });
-    }
 
     if (!profile) {
       return NextResponse.json({ success: true, data: null });

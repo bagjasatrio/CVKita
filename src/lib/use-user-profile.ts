@@ -436,19 +436,6 @@ function getProfileForUser(user: any): UserProfileStore {
         // fallback
       }
     }
-    if (!baseProfile || (!baseProfile.experiences?.length && !baseProfile.skills?.length)) {
-      const defaultSaved = localStorage.getItem("cvforge_profile_user_default_1");
-      if (defaultSaved) {
-        try {
-          const parsedDefault = JSON.parse(defaultSaved);
-          if (parsedDefault && (parsedDefault.experiences?.length || parsedDefault.skills?.length)) {
-            baseProfile = parsedDefault;
-          }
-        } catch {
-          // fallback
-        }
-      }
-    }
   }
 
   const profileToReturn = baseProfile || {
