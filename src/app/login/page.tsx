@@ -23,13 +23,17 @@ function LoginForm() {
   const [oauthEmail, setOauthEmail] = useState("");
   const [oauthName, setOauthName] = useState("");
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       await login(email, password, redirectTo);
-    } catch {
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Login gagal. Silakan periksa kembali email & password Anda.");
       setIsLoading(false);
     }
   };
@@ -100,6 +104,11 @@ function LoginForm() {
 
       {/* Form Login */}
       <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-xs font-semibold text-red-600 dark:text-red-300">
+            {errorMessage}
+          </div>
+        )}
         <div className="space-y-1">
           <label className="text-xs font-mono font-semibold text-slate-800 dark:text-zinc-200">Work or Personal Email</label>
           <input

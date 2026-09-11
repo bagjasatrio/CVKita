@@ -21,13 +21,17 @@ export default function RegisterPage() {
   const [oauthEmail, setOauthEmail] = useState("");
   const [oauthName, setOauthName] = useState("");
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedTerms || !email.trim()) return;
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       await register(fullName, email, password);
-    } catch {
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Registrasi gagal. Silakan periksa kembali data Anda.");
       setIsLoading(false);
     }
   };
@@ -100,6 +104,11 @@ export default function RegisterPage() {
 
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-xs font-semibold text-red-600 dark:text-red-300">
+              {errorMessage}
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-xs font-mono font-semibold text-slate-800 dark:text-zinc-200">Full Name *</label>
             <input

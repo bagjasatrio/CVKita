@@ -24,6 +24,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getRegisteredAccounts = (): Array<{ id: string; name: string; email: string; pass: string; roleTitle: string; avatarInitials: string }> => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("cvforge_registered_accounts");
+    if (!raw) {
+      const initial = [
+        {
+          id: "usr_muhammad_bagjasatrio28_gmail_com",
+          name: "Muhammad Bagja Satrio",
+          email: "muhammad.bagjasatrio28@gmail.com",
+          pass: "password123",
+          roleTitle: "Career Profile Owner",
+          avatarInitials: "MB",
+        },
+      ];
+      localStorage.setItem("cvforge_registered_accounts", JSON.stringify(initial));
+      return initial;
+    }
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,36 +88,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 400));
 
-    const isDemo = email === "demo@cvforge.ai" || pass === "demo";
+    const cleanEmail = email.toLowerCase().trim();
 
-    const nameFromEmail = email.split("@")[0].replace(".", " ");
-    const formattedName = nameFromEmail
-      .split(" ")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
+    // Check demo account
+    if (cleanEmail === "demo@cvforge.ai" || pass === "demo") {
+      const demoUser: UserSession = {
+        id: "user-demo",
+        name: "Demo Account",
+        email: "demo@cvforge.ai",
+        roleTitle: "Career Profile Owner",
+        avatarInitials: "DA",
+        isDemo: true,
+      };
+      setSessionCookie(true);
+      localStorage.setItem("cvforge_user", JSON.stringify(demoUser));
+      setUser(demoUser);
+      setIsLoading(false);
+      router.push(redirectTo);
+      return;
+    }
 
-    const initials = formattedName
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
+    const registeredList = getRegisteredAccounts();
+    const foundUser = registeredList.find((u) => u.email.toLowerCase().trim() === cleanEmail);
 
-    let userName = formattedName;
-    if (email.includes("google")) userName = "Google User";
-    if (email.includes("github")) userName = "GitHub User";
+    if (!foundUser) {
+      setIsLoading(false);
+      throw new Error("Akun belum terdaftar. Silakan buat akun baru di halaman registrasi terlebih dahulu.");
+    }
 
-    const stableId = isDemo
-      ? "user-demo"
-      : `usr_${email.toLowerCase().trim().replace(/[^a-z0-9]/g, "_")}`;
+    if (foundUser.pass && pass && foundUser.pass !== pass && foundUser.pass !== "oauth-pass") {
+      setIsLoading(false);
+      throw new Error("Password yang Anda masukkan salah.");
+    }
+
+    const nameParts = (foundUser.name || "User Account").trim().split(" ");
+    const initials =
+      foundUser.avatarInitials ||
+      (nameParts.length >= 2
+        ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+        : foundUser.name.substring(0, 2).toUpperCase());
 
     const loggedUser: UserSession = {
-      id: stableId,
-      name: userName || "User Account",
-      email: email,
-      roleTitle: "Career Profile Owner",
-      avatarInitials: initials || "CF",
-      isDemo: isDemo,
+      id: foundUser.id,
+      name: foundUser.name,
+      email: foundUser.email,
+      roleTitle: foundUser.roleTitle || "Career Profile Owner",
+      avatarInitials: initials,
+      isDemo: false,
     };
 
     setSessionCookie(true);
@@ -107,26 +148,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 400));
 
+    const cleanEmail = email.toLowerCase().trim();
+    const registeredList = getRegisteredAccounts();
+
+    const existing = registeredList.find((u) => u.email.toLowerCase().trim() === cleanEmail);
+    if (existing) {
+      setIsLoading(false);
+      throw new Error("Email ini sudah terdaftar. Silakan login ke akun Anda.");
+    }
+
     const nameParts = name.trim().split(" ");
     const initials =
       nameParts.length >= 2
         ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
         : name.substring(0, 2).toUpperCase();
 
-    const stableId = `usr_${email.toLowerCase().trim().replace(/[^a-z0-9]/g, "_")}`;
+    const stableId = `usr_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
 
-    const newUser: UserSession = {
+    const newUserObj = {
       id: stableId,
       name: name || "Career Builder",
-      email: email,
+      email: cleanEmail,
+      pass: pass || "password123",
       roleTitle: "Career Profile Owner",
       avatarInitials: initials || "CF",
+    };
+
+    const updatedAccounts = [...registeredList, newUserObj];
+    localStorage.setItem("cvforge_registered_accounts", JSON.stringify(updatedAccounts));
+
+    const newUserSession: UserSession = {
+      id: stableId,
+      name: newUserObj.name,
+      email: newUserObj.email,
+      roleTitle: newUserObj.roleTitle,
+      avatarInitials: newUserObj.avatarInitials,
       isDemo: false,
     };
 
     setSessionCookie(true);
-    localStorage.setItem("cvforge_user", JSON.stringify(newUser));
-    setUser(newUser);
+    localStorage.setItem("cvforge_user", JSON.stringify(newUserSession));
+    setUser(newUserSession);
     setIsLoading(false);
     router.push("/dashboard");
   };
