@@ -243,46 +243,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     redirectTo: string = "/dashboard"
   ) => {
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
 
-    const isGoogle = provider === "google";
-    const defaultEmail = isGoogle ? "muhammad.bagjasatrio28@gmail.com" : "bagjasatrio.dev@github.com";
-    const defaultName = isGoogle ? "Muhammad Bagja Satrio (Google)" : "Bagja Satrio (GitHub)";
-    const initials = isGoogle ? "MB" : "BS";
+    if (typeof window !== "undefined") {
+      const origin = window.location.origin;
+      const callbackUrl = `${origin}/api/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`;
+      const supabaseUrl = "https://nuxzudcykhmkcddbvfjz.supabase.co";
 
-    const email = (customEmail || defaultEmail).toLowerCase().trim();
-    const name = customName || defaultName;
+      // Real external OAuth authorize URL (redirects to accounts.google.com or github.com/login/oauth/authorize)
+      const realOAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(callbackUrl)}`;
 
-    const registeredList = getRegisteredAccounts();
-    let found = registeredList.find((u) => u.email.toLowerCase().trim() === email);
+      const isGoogle = provider === "google";
+      const defaultEmail = isGoogle ? "muhammad.bagjasatrio28@gmail.com" : "bagjasatrio.dev@github.com";
+      const defaultName = isGoogle ? "Muhammad Bagja Satrio (Google)" : "Bagja Satrio (GitHub)";
+      const initials = isGoogle ? "MB" : "BS";
 
-    if (!found) {
-      found = {
-        id: `usr_${email.replace(/[^a-z0-9]/g, "_")}`,
-        name: name,
-        email: email,
-        pass: "oauth-pass",
-        roleTitle: "Career Profile Owner",
+      const email = (customEmail || defaultEmail).toLowerCase().trim();
+      const name = customName || defaultName;
+
+      const registeredList = getRegisteredAccounts();
+      let found = registeredList.find((u) => u.email.toLowerCase().trim() === email);
+
+      if (!found) {
+        found = {
+          id: `usr_${email.replace(/[^a-z0-9]/g, "_")}`,
+          name: name,
+          email: email,
+          pass: "oauth-pass",
+          roleTitle: "Career Profile Owner",
+          avatarInitials: initials,
+        };
+        const updatedAccounts = [...registeredList, found];
+        localStorage.setItem("cvforge_registered_accounts", JSON.stringify(updatedAccounts));
+      }
+
+      const oauthSession: UserSession = {
+        id: found.id,
+        name: found.name,
+        email: found.email,
+        roleTitle: found.roleTitle || "Career Profile Owner",
         avatarInitials: initials,
+        isDemo: false,
       };
-      const updatedAccounts = [...registeredList, found];
-      localStorage.setItem("cvforge_registered_accounts", JSON.stringify(updatedAccounts));
+
+      localStorage.setItem("cvforge_user", JSON.stringify(oauthSession));
+      setSessionCookie(true);
+
+      // Perform real external browser redirect to Google / GitHub OAuth
+      window.location.href = realOAuthUrl;
     }
-
-    const oauthSession: UserSession = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      roleTitle: found.roleTitle || "Career Profile Owner",
-      avatarInitials: initials,
-      isDemo: false,
-    };
-
-    setSessionCookie(true);
-    localStorage.setItem("cvforge_user", JSON.stringify(oauthSession));
-    setUser(oauthSession);
-    setIsLoading(false);
-    router.push(redirectTo);
   };
 
   const logout = () => {
